@@ -1,29 +1,31 @@
-import ray
-from ray.util.actor_pool import ActorPool
-import time
-import numpy as np
-from astropy.time import Time
-from astropy.coordinates import SkyCoord
-from astroquery.jplhorizons import Horizons
-import pandas as pd
-import os
-from penquins import Kowalski
-from tqdm import tqdm
 import glob
 import gzip
 import io
-from astropy.io import fits
+import os
+import time
 from copy import deepcopy
+
+import joblib
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import ray
+
+from astropy.coordinates import SkyCoord
+from astropy.io import fits
+from astropy.time import Time
 from astropy.visualization import (
     AsymmetricPercentileInterval,
     ImageNormalize,
     LinearStretch,
     LogStretch,
 )
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
-import joblib
+from astroquery.jplhorizons import Horizons
 from dotenv import load_dotenv
+from matplotlib.backends.backend_pdf import PdfPages
+from penquins import Kowalski
+from ray.util.actor_pool import ActorPool
+from tqdm import tqdm
 
 load_dotenv()
 
@@ -36,9 +38,10 @@ ray.init(
 
 
 def get_comet_names():
+    import re
+
     import requests
     from bs4 import BeautifulSoup
-    import re
 
     url = "https://physics.ucf.edu/~yfernandez/cometlist.html"
     r = requests.get(url)
