@@ -1,21 +1,13 @@
 This is a work in progress!
 
 ## What is it about?
-This is a fairly simple system, which aims to find the ZTF alerts counterparts for a list of comets from https://physics.ucf.edu/~yfernandez/cometlist.html.
+This is a fairly simple system, which aims to process alert data from multiple surveys in a generic manner, submitting computation to a [Ray cluster](https://www.ray.io/).
 
-To do so, we use JPL's astroquery to retrieve the positions of said comets for a period of 6 years (from late 2017 to November 2023), and then we use penquins to query Kowalski using cone searches, with somewhat loose queries (in radius and time) to try to compensate for the fixed 10m rate at which we sampled the comets' positions. These querying conditions could be easily modified to be more or less strict.
+The idea is that this system allows to easily start a ray cluster, and submit any task to it. In the future, using ray's distributed features, we can imagine spawning multiple clusters across multiple machines to scale up the computation power super easily.
 
-We use Ray-core to parallelize the comets' positions fetching, and the alert retrieval process.
-Due to JPL's API restrictions, we can only fetch for 2 comets at a time.
+All the credentials and configuration are stored in a config file, which is not included in this repo, but which you can easily create by copying the `config.defaults.yaml` file and filling in the blanks.
 
-The Kowalski credentials are passed using python-dotenv, so you need to create a .env file with the following variables:
-```bash
-KOWALSKI_PROTOCOL=https
-KOWALSKI_HOST=kowalski.caltech.edu
-KOWALSKI_PORT=443
-KOWALSKI_TOKEN=<replace_with_your_token>
-```
-Also, these can be passed as environment variables.
+The very first application for this system, and which serves as the basic example aims to find the ZTF alerts counterparts for a list of comets from https://physics.ucf.edu/~yfernandez/cometlist.html. To do so, we use JPL's astroquery to retrieve the positions of said comets for a period of 6 years (from late 2017 to November 2023), and then we use penquins to query Kowalski using cone searches, with somewhat loose queries (in radius and time) to try to compensate for the fixed 10m rate at which we sampled the comets' positions. These querying conditions could be easily modified to be more or less strict.
 
 Ultimately, we'd like to train a binary classifier to try to automagically find potential comet's in the ZTF alerts stream.
 
@@ -25,10 +17,24 @@ pip install -r requirements.txt
 ```
 
 ## Usage
+
+### Start a ray cluster
 ```bash
-python main.py
+python main.py start
 ```
 
-## Deploy on Heroku (optional)
+### Submit a job to the cluster
+```bash
+python main.py submit_job --job_file=scripts/<your_script>.py
+```
 
-We provide a quick Dockerfile and a heroku.yml file to deploy this app on Heroku, if you'd like to have it run somewhere in the cloud continuously. This hasn't been tested yet.
+Example:
+First we submit a long running job (without waiting for it to finish) to generate the comets positions for a period of 6 years:
+```bash
+python main.py submit_job --job_file=scripts/generate_comets_positions.py --nowait
+```
+
+Then, at anytime after that, we submit a job that tries to fetch the ZTF alerts for those comets from Kowalski:
+```bash
+python main.py submit_job --job_file=scripts/fetch_comet_alerts.py
+```
