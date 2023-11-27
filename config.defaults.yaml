@@ -1,0 +1,16 @@
+ray:
+  cluster:
+    host: localhost
+    port: 4000
+    num_cpus: 6
+  dashboard:
+    host: localhost
+    port: 8265
+  data:
+    path: <your_cluster_data_path> # example: /Users/theodlz/projects/comets/data
+
+kowalski:
+  protocol: https
+  host: kowalski.caltech.edu
+  port: 443
+  token: <your_token_here>

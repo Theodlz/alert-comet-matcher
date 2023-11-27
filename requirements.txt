@@ -1,5 +1,4 @@
 ray[default]
-python-dotenv
 matplotlib
 requests
 joblib
@@ -9,3 +8,4 @@ numpy
 astropy
 astroquery
 pre-commit
+pydantic==1.10.13

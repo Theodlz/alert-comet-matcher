@@ -2,3 +2,5 @@ comet_data
 .env
 env
 .DS_Store
+__pycache__
+.pytest_cache
