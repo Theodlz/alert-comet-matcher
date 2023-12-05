@@ -148,6 +148,6 @@ def get_comet_data(
     # put that in a dataframe
     data = pd.DataFrame(data)
     data.to_csv(
-        os.path.join(comet_positions_path, f"{comet_name}_{start_date}_{end_date}.csv"),
+        os.path.join(comet_positions_path, file_name),
         index=False,
     )
