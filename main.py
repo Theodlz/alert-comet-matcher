@@ -22,9 +22,8 @@ class Cluster:
 
     def start(self):
         print("Starting Ray Cluster")
-        std_out, std_err = self.run_cmd(
-            f"ray start --head --port={ray_port} --dashboard-host={ray_dashboard_host} --dashboard-port={ray_dashboard_port}"
-        )
+        cmd = f'ray start --head --port={ray_port} --dashboard-host "{ray_dashboard_host}" --dashboard-port={ray_dashboard_port}'
+        std_out, std_err = self.run_cmd(cmd)
         print(std_out)
         print(std_err)
 
