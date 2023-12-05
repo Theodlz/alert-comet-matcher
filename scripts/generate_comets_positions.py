@@ -20,9 +20,12 @@ class CometDataFetcher:
         data_path="./data",
         verbose=True,
     ):
-        return get_comet_data(
-            comet_name, start_date, end_date, time_step, data_path, verbose
-        )
+        try:
+            return get_comet_data(
+                comet_name, start_date, end_date, time_step, data_path, verbose
+            )
+        except Exception as e:
+            print(f"Error fetching data for {comet_name}: {str(e)}")
 
 
 def fetch_comets_data(
