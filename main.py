@@ -8,6 +8,7 @@ config = load_config()
 
 ray_host = config["ray"]["cluster"]["host"]
 ray_port = config["ray"]["cluster"]["port"]
+ray_dashboard_host = config["ray"]["dashboard"]["host"]
 ray_dashboard_port = config["ray"]["dashboard"]["port"]
 address = f"{ray_host}:{ray_port}"
 
@@ -22,7 +23,7 @@ class Cluster:
     def start(self):
         print("Starting Ray Cluster")
         std_out, std_err = self.run_cmd(
-            f"ray start --head --port={ray_port} --dashboard-port={ray_dashboard_port}"
+            f"ray start --head --port={ray_port} --dashboard-host={ray_dashboard_host} --dashboard-port={ray_dashboard_port}"
         )
         print(std_out)
         print(std_err)
@@ -37,6 +38,7 @@ class Cluster:
         print("Ray Cluster's status")
         std_out, std_err = self.run_cmd(f"ray status --address={address}")
         print(std_out)
+        print(std_err)
 
     def submit_job(self, job_file, nowait=False):
         # check that the job file exists
