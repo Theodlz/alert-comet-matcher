@@ -14,3 +14,6 @@ kowalski:
   host: kowalski.caltech.edu
   port: 443
   token: <your_token_here>
+
+params:
+  max_queries_per_batch:

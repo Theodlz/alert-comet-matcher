@@ -42,7 +42,12 @@ def get_comets_list(source="yfernandez"):
 
 
 def update_alert_comets(
-    k, data_path, alert_stream="ztf", n_processes=20, verbose=False
+    k,
+    data_path,
+    alert_stream="ztf",
+    n_processes=20,
+    max_queries_per_batch=None,
+    verbose=False,
 ):
 
     if k is None:
@@ -107,6 +112,7 @@ def update_alert_comets(
         objects_with_positions=comet_positions,
         alert_stream=alert_stream,
         n_processes=n_processes,
+        max_queries_per_batch=max_queries_per_batch,
         verbose=verbose,
     )
 

@@ -12,6 +12,7 @@ def bulk_query_moving_objects(
     objects_with_positions: dict,
     alert_stream="ztf",
     n_processes=20,
+    max_queries_per_batch=None,
     verbose=False,
 ):
     # the input is a dict, where keys are object names and values are dicts with lists of ra, dec, and jd epochs
@@ -40,42 +41,62 @@ def bulk_query_moving_objects(
 
     # reformat to have a dict with keys as epochs and values as lists of objects and their positions at that epoch
     epochs = tuple(objects_with_positions[list(objects_with_positions.keys())[0]]["jd"])
-    queries = []
-    for i, epoch in tqdm(
+    if max_queries_per_batch is None:
+        max_queries_per_batch = len(epochs)
+    else:
+        max_queries_per_batch = min(max_queries_per_batch, len(epochs))
+
+    # batch the epochs
+    epochs = [
+        epochs[i : i + max_queries_per_batch]  # noqa
+        for i in range(0, len(epochs), max_queries_per_batch)
+    ]
+    all_results = {}
+    for i, batch in tqdm(
         enumerate(epochs),
         total=len(epochs),
-        desc="Generating queries",
+        desc="Batching epochs",
         disable=not verbose,
     ):
-        objects = {}
-        catalog_parameters = {
-            ALERT_STREAMS[alert_stream]: {
-                "filter": {
-                    "candidate.jd": {"$gte": epoch - 0.01, "$lte": epoch + 0.01}
-                },
-                "projection": {
-                    "_id": 0,
-                    "candid": 1,
-                    "objectId": 1,
-                    "candidate.jd": 1,
-                },
+        queries = []
+        for i, epoch in tqdm(
+            enumerate(batch),
+            total=len(batch),
+            desc="Generating queries",
+            disable=not verbose,
+        ):
+            objects = {}
+            catalog_parameters = {
+                ALERT_STREAMS[alert_stream]: {
+                    "filter": {
+                        "candidate.jd": {"$gte": epoch - 0.01, "$lte": epoch + 0.01}
+                    },
+                    "projection": {
+                        "_id": 0,
+                        "candid": 1,
+                        "objectId": 1,
+                        "candidate.jd": 1,
+                    },
+                }
             }
-        }
-        for obj_name in objects_with_positions:
-            objects[obj_name] = [
-                objects_with_positions[obj_name]["ra"][i],
-                objects_with_positions[obj_name]["dec"][i],
-            ]
-        queries.append(
-            build_cone_search(objects, catalog_parameters, radius=5.0, unit="arcsec")
+            for obj_name in objects_with_positions:
+                objects[obj_name] = [
+                    objects_with_positions[obj_name]["ra"][i],
+                    objects_with_positions[obj_name]["dec"][i],
+                ]
+            queries.append(
+                build_cone_search(
+                    objects, catalog_parameters, radius=5.0, unit="arcsec"
+                )
+            )
+
+        # run the queries
+        results = run_queries(
+            k, queries=queries, query_type="cone_search", n_processes=n_processes
         )
 
-    # for debug only, print the first query
-    print(queries[0])
+        results = results[ALERT_STREAMS[alert_stream]]
+        all_results.update(results)
+        del results, queries
 
-    # run the queries
-    results = run_queries(
-        k, queries=queries, query_type="cone_search", n_processes=n_processes
-    )
-
-    return results[ALERT_STREAMS[alert_stream]]
+    return all_results
