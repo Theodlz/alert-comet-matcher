@@ -40,7 +40,7 @@ result = update_alert_comets_remote.remote(
     config["ray"]["data"]["path"],
     alert_stream,
     n_processes,
-    max_queries_per_batch=None,
+    max_queries_per_batch=max_queries_per_batch,
     verbose=True,
     loop=False,
 )
