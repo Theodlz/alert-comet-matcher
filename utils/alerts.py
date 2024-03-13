@@ -42,26 +42,10 @@ def bulk_query_moving_objects(
     # reformat to have a dict with keys as epochs and values as lists of objects and their positions at that epoch
     epochs = tuple(objects_with_positions[list(objects_with_positions.keys())[0]]["jd"])
     if max_queries_per_batch is None:
-        max_queries_per_batch = len(epochs)
-    else:
-        max_queries_per_batch = min(max_queries_per_batch, len(epochs))
-
-    # batch the epochs
-    epochs = [
-        epochs[i : i + max_queries_per_batch]  # noqa
-        for i in range(0, len(epochs), max_queries_per_batch)
-    ]
-    all_results = {}
-    for i, batch in tqdm(
-        enumerate(epochs),
-        total=len(epochs),
-        desc="Batching epochs",
-        disable=not verbose,
-    ):
         queries = []
         for i, epoch in tqdm(
-            enumerate(batch),
-            total=len(batch),
+            enumerate(epochs),
+            total=len(epochs),
             desc="Generating queries",
             disable=not verbose,
         ):
@@ -89,14 +73,73 @@ def bulk_query_moving_objects(
                     objects, catalog_parameters, radius=5.0, unit="arcsec"
                 )
             )
-
         # run the queries
         results = run_queries(
             k, queries=queries, query_type="cone_search", n_processes=n_processes
         )
 
-        results = results[ALERT_STREAMS[alert_stream]]
-        all_results.update(results)
-        del results, queries
+        return results[ALERT_STREAMS[alert_stream]]
+    else:
+        all_results = {}
+        max_queries_per_batch = min(int(max_queries_per_batch), len(epochs))
+        n_batches = int(len(epochs) / max_queries_per_batch)
+        with tqdm(total=n_batches * max_queries_per_batch, disable=not verbose) as pbar:
+            for i in range(n_batches):
+                queries = []
+                for j, epoch in enumerate(
+                    epochs[
+                        i
+                        * max_queries_per_batch : (i + 1)  # noqa E203
+                        * max_queries_per_batch
+                    ]
+                ):
+                    objects = {}
+                    catalog_parameters = {
+                        ALERT_STREAMS[alert_stream]: {
+                            "filter": {
+                                "candidate.jd": {
+                                    "$gte": epoch - 0.01,
+                                    "$lte": epoch + 0.01,
+                                }
+                            },
+                            "projection": {
+                                "_id": 0,
+                                "candid": 1,
+                                "objectId": 1,
+                                "candidate.jd": 1,
+                            },
+                        }
+                    }
+                    for obj_name in objects_with_positions:
+                        objects[obj_name] = [
+                            objects_with_positions[obj_name]["ra"][
+                                i * max_queries_per_batch + j
+                            ],
+                            objects_with_positions[obj_name]["dec"][
+                                i * max_queries_per_batch + j
+                            ],
+                        ]
+                    queries.append(
+                        build_cone_search(
+                            objects, catalog_parameters, radius=5.0, unit="arcsec"
+                        )
+                    )
+                # run the queries
+                results = run_queries(
+                    k,
+                    queries=queries,
+                    query_type="cone_search",
+                    n_processes=n_processes,
+                )
 
-    return all_results
+                if i == 0:
+                    all_results = results[ALERT_STREAMS[alert_stream]]
+                else:
+                    for obj_name in all_results:
+                        all_results[obj_name] += results[ALERT_STREAMS[alert_stream]][
+                            obj_name
+                        ]
+
+                pbar.update(max_queries_per_batch)
+
+        return all_results

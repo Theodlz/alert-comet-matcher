@@ -16,7 +16,9 @@ def get_credentials():
     )
 
 
-def connect_kowalski(credentials: KowalskiCredentials | dict, verbose: bool = False):
+def connect_kowalski(
+    credentials: KowalskiCredentials | dict, verbose: bool = False, timeout: int = 6000
+):
     """Connect to Kowalski
 
     Args:
@@ -33,6 +35,7 @@ def connect_kowalski(credentials: KowalskiCredentials | dict, verbose: bool = Fa
         port=credentials.port,
         token=credentials.token,
         verbose=verbose,
+        timeout=timeout,
     )
     return kowalski
 

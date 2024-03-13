@@ -48,6 +48,7 @@ def update_alert_comets(
     n_processes=20,
     max_queries_per_batch=None,
     verbose=False,
+    update_alert_packets=False,
 ):
 
     if k is None:
@@ -95,7 +96,44 @@ def update_alert_comets(
     print(f"Found {len(comet_names)} comets to query for")
 
     if len(comet_names) == 0:
-        return
+        if not update_alert_packets:
+            print("No comets to query for, exiting")
+            return
+        else:
+            print("No comets to query for, updating alert packets")
+            # here we will simply loop over the existing_comet_alerts and update the alert packets
+            for comet_name in tqdm(
+                existing_comet_alerts,
+                desc="Updating alert packets",
+                disable=not verbose,
+            ):
+                # get the alert packets for this comet
+                for i in range(len(existing_comet_alerts[comet_name])):
+                    query = {
+                        "query_type": "find",
+                        "query": {
+                            "catalog": "ZTF_alerts",
+                            "filter": {
+                                "candid": existing_comet_alerts[comet_name][i]["candid"]
+                            },
+                            "projection": {
+                                "_id": 0,
+                                "candid": 1,
+                                "objectId": 1,
+                                "candidate": 1,
+                                "cutoutScience": 1,
+                                "cutoutTemplate": 1,
+                                "cutoutDifference": 1,
+                                "classifications": 1,
+                            },
+                        },
+                    }
+                    results = k.query(query=query)  # noqa F841
+                    raise NotImplementedError("Need to update the alert packets")
+
+            # save the new alerts
+            with open(os.path.join(comet_data_path, "alert_comets.joblib"), "wb") as f:
+                joblib.dump(existing_comet_alerts, f)
 
     # open the csv files with pandas
     comet_positions = {}
