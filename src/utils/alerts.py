@@ -1,6 +1,6 @@
 from tqdm import tqdm
 
-from utils.kowalski import build_cone_search, run_queries, Kowalski
+from src.utils.kowalski import build_cone_search, run_queries, Kowalski
 
 ALERT_STREAMS = {
     "ztf": "ZTF_alerts",

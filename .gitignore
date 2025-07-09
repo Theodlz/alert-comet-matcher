@@ -1,6 +1,7 @@
 .idea
 comet_data
 .env
+.venv
 env
 .DS_Store
 __pycache__

@@ -1,8 +1,8 @@
 from penquins import Kowalski
 import os
-from config import load_config
 
-from utils.validate import KowalskiCredentials
+from ..config import load_config
+from .validate import KowalskiCredentials
 
 config = load_config()
 

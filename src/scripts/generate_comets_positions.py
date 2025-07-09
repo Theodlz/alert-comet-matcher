@@ -1,9 +1,8 @@
 import ray
 import time
 
-from utils.comets import get_comet_data, get_comets_list
-
-from config import load_config
+from src.utils.comets import get_comet_data, get_comets_list
+from src.config import load_config
 
 
 @ray.remote

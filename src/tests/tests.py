@@ -1,14 +1,14 @@
 import pytest
 
-from alert_comets.utils.validate import (
+from src.utils.validate import (
     MovingObject,
     ObjectWithPosition,
     ObjectsWithPosition,
     KowalskiCredentials,
 )
-from alert_comets.utils.moving_objects import get_object_positions
-from alert_comets.utils.comets import get_comets_list
-from alert_comets.utils.kowalski import build_cone_search
+from src.utils.moving_objects import get_object_positions
+from src.utils.comets import get_comets_list
+from src.utils.kowalski import build_cone_search
 
 
 def test_validate_kowalski_credentials():
