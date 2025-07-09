@@ -19,7 +19,7 @@ class CometDataFetcher:
             print(f"Error fetching data for {comet_name}: {str(e)}")
 
 
-def fetch_comets_data(start_date, end_date, data_path, verbose):
+def fetch_comets_data(start_date, end_date, data_path, verbose=True):
     actor_pool = ray.util.ActorPool([CometDataFetcher.remote() for _ in range(2)])
     comet_names = get_comets_list()
 
@@ -42,5 +42,4 @@ fetch_comets_data(
     start_date="2017-11-07",
     end_date="2023-11-07",
     data_path=cfg["ray"]["data"]["path"],
-    verbose=True
 )
