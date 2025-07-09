@@ -7,9 +7,9 @@ import joblib
 import pandas as pd
 from tqdm import tqdm
 from datetime import datetime
-from utils.alerts import bulk_query_moving_objects
-from utils.kowalski import get_kowalski
-from utils.moving_objects import get_object_positions
+from src.utils.alerts import bulk_query_moving_objects
+from src.utils.kowalski import get_kowalski
+from src.utils.moving_objects import get_object_positions
 
 SOURCES = {"yfernandez": "https://physics.ucf.edu/~yfernandez/cometlist.html"}
 
