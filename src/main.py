@@ -13,24 +13,15 @@ ray_dashboard_port = cfg["ray"]["dashboard"]["port"]
 address = f"{ray_host}:{ray_port}"
 
 
-def exclude_gitignore_file_from_ray(files_to_not_exclude):
+def get_files_to_exclude(exceptions):
     """
-    Exclude files based on .gitignore file.
+    Get the list of files to exclude from Ray job submission.
     Args:
-        files_to_not_exclude: List of files present in the .gitignore file that should not be excluded.
+        exceptions (list): List of file names that should not be excluded.
     Returns:
-        A string with the excludes file formatted for Ray runtime environment.
+        list: List of files in the current directory excluding the exceptions.
     """
-    excludes = []
-    if os.path.exists(".gitignore"):
-        with open(".gitignore", "r") as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith("#") and line not in files_to_not_exclude:
-                    excludes.append(line)
-
-    excludes_str = ", ".join(f'"{e}"' for e in excludes)
-    return f"--runtime-env-json='{{\"excludes\": [{excludes_str}]}}'"
+    return [file for file in os.listdir(".") if file not in exceptions]
 
 
 class Cluster:
@@ -59,8 +50,9 @@ class Cluster:
         print(std_out)
         print(std_err)
 
-    def submit_job(self, job_file, nowait=False, exclude_gitignore_files=True):
-        exclude_config = exclude_gitignore_file_from_ray(["config.yaml"]) if exclude_gitignore_files else ""
+    def submit_job(self, job_file, nowait=False):
+        excludes = get_files_to_exclude(cfg["ray"]["files_to_include"])
+        exclude_config = "--runtime-env-json='{\"excludes\": [" + ", ".join(f'"{e}"' for e in excludes) + "]}'"
         nowait = "--no-wait" if nowait else ""
         ray_cmd = f"RAY_RUNTIME_ENV_IGNORE_GITIGNORE=1 ray job submit --working-dir . --address={address} {nowait} {exclude_config}"
         std_out, std_err = self.run_cmd(f"{ray_cmd} -- python {job_file}")
