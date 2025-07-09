@@ -33,8 +33,8 @@ def get_comets_list():
 def update_alert_comets(
     k,
     data_path,
-    max_queries_per_batch,
     n_processes,
+    max_queries_per_batch,
     verbose,
 ):
 
@@ -77,7 +77,6 @@ def update_alert_comets(
         print(f"Found {len(existing_comet_alerts)} comets with existing alerts")
     else:
         existing_comet_alerts = {}
-        print("No existing alerts found")
 
     # remove from comet_names the ones that already have an entry in existing_comet_alerts
     comet_names = {

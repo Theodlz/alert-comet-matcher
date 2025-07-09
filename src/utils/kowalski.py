@@ -83,14 +83,15 @@ def build_cone_search(
 
 
 def run_queries(
-    k: Kowalski, queries: list[dict], query_type: str, n_processes: int = 20
+    k: Kowalski, queries: list[dict], query_type: str, n_processes: int
 ):
     """Run query in Kowalski
 
     Args:
         k (Kowalski): Kowalski client
-        query (dict): query
+        queries (list[dict]): list of queries
         query_type (str): query type. One of 'cone_search', 'near', 'aggregate'
+        n_processes (int, optional): number of processes.
 
     Returns:
         query_results (dict): query results
