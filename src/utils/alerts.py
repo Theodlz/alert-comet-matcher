@@ -1,25 +1,18 @@
 from tqdm import tqdm
 
 from src.utils.kowalski import build_cone_search, run_queries, Kowalski
+from src.config import load_config
 
-ALERT_STREAMS = {
-    "ztf": "ZTF_alerts",
-}
-
+cfg = load_config()
 
 def bulk_query_moving_objects(
     k: Kowalski,
     objects_with_positions: dict,
-    alert_stream="ztf",
-    n_processes=20,
-    max_queries_per_batch=None,
-    verbose=False,
+    n_processes,
+    max_queries_per_batch,
+    verbose,
 ):
-    # the input is a dict, where keys are object names and values are dicts with lists of ra, dec, and jd epochs
-
-    if alert_stream not in ALERT_STREAMS:
-        raise Exception(f"Invalid alert stream, must be one of {ALERT_STREAMS}")
-
+    stream = cfg["params"]["alert_stream"]
     if len(objects_with_positions) == 0:
         return {}
     # make sure the epochs are sorted for each object
@@ -51,7 +44,7 @@ def bulk_query_moving_objects(
         ):
             objects = {}
             catalog_parameters = {
-                ALERT_STREAMS[alert_stream]: {
+                stream: {
                     "filter": {
                         "candidate.jd": {"$gte": epoch - 0.01, "$lte": epoch + 0.01}
                     },
@@ -78,7 +71,7 @@ def bulk_query_moving_objects(
             k, queries=queries, query_type="cone_search", n_processes=n_processes
         )
 
-        return results[ALERT_STREAMS[alert_stream]]
+        return results[stream]
     else:
         all_results = {}
         max_queries_per_batch = min(int(max_queries_per_batch), len(epochs))
@@ -95,7 +88,7 @@ def bulk_query_moving_objects(
                 ):
                     objects = {}
                     catalog_parameters = {
-                        ALERT_STREAMS[alert_stream]: {
+                        stream: {
                             "filter": {
                                 "candidate.jd": {
                                     "$gte": epoch - 0.01,
@@ -133,10 +126,10 @@ def bulk_query_moving_objects(
                 )
 
                 if i == 0:
-                    all_results = results[ALERT_STREAMS[alert_stream]]
+                    all_results = results[stream]
                 else:
                     for obj_name in all_results:
-                        all_results[obj_name] += results[ALERT_STREAMS[alert_stream]][
+                        all_results[obj_name] += results[stream][
                             obj_name
                         ]
 

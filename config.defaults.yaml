@@ -1,4 +1,11 @@
 ray:
+  files_to_include:
+    [
+      "config.yaml",
+      "config.defaults.yaml",
+      "requirements.txt",
+      "src",
+    ]
   cluster:
     host: localhost
     port: 4000
@@ -18,3 +25,4 @@ kowalski:
 params:
   max_queries_per_batch:
   comet_list_url: https://planets.ucf.edu/resources/cometlist/
+  alert_stream: ZTF_alerts

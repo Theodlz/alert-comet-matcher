@@ -34,7 +34,6 @@ def update_alert_comets(
     k,
     data_path,
     max_queries_per_batch,
-    alert_stream,
     n_processes,
     verbose,
 ):
@@ -105,7 +104,6 @@ def update_alert_comets(
     comet_alerts = bulk_query_moving_objects(
         k=k,
         objects_with_positions=comet_positions,
-        alert_stream=alert_stream,
         n_processes=n_processes,
         max_queries_per_batch=max_queries_per_batch,
         verbose=verbose,

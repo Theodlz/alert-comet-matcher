@@ -12,7 +12,6 @@ def update_alert_comets_remote(
     k,
     data_path,
     max_queries_per_batch,
-    alert_stream="ztf",
     n_processes=20,
     verbose=True,
     loop=False,
@@ -23,7 +22,6 @@ def update_alert_comets_remote(
             update_alert_comets(
                 k,
                 data_path,
-                alert_stream,
                 n_processes,
                 max_queries_per_batch,
                 verbose,
@@ -33,7 +31,6 @@ def update_alert_comets_remote(
         update_alert_comets(
             k,
             data_path,
-            alert_stream,
             n_processes,
             max_queries_per_batch,
             verbose,
