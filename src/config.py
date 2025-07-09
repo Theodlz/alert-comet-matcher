@@ -70,9 +70,10 @@ class Config(dict):
         if config_files is not None:
             cwd = os.getcwd()
             config_names = [relative_to(c, cwd) for c in config_files]
-            print(f"  Config files: {config_names[0]}")
-            for f in config_names[1:]:
-                print(f"                {f}")
+            print("Loaded config files:")
+            for i, name in enumerate(config_names):
+                print(f"  [{i + 1}] {name}")
+
             self["config_files"] = config_files
             for f in config_files:
                 self.update_from(f)
@@ -118,28 +119,28 @@ class Config(dict):
         print("=" * 78)
 
 
-def load_config(config_files=["config.yaml"]):
+def load_config(config_files=None):
     """
     Load config and secrets
     """
     if not _cache:
-        missing = [cfg for cfg in config_files if not os.path.isfile(cfg)]
-        if missing:
-            print(f'Missing config files: {", ".join(missing)}; continuing.')
-        if "config.yaml" in missing:
+        config_files = ["config.defaults.yaml", "config.yaml"] + (config_files or [])
+        existing_files = [os.path.abspath(f) for f in config_files if os.path.isfile(f)]
+        missing_files = [f for f in config_files if not os.path.isfile(f)]
+
+        if not existing_files:
+            raise FileNotFoundError("No configuration file found.")
+
+        if missing_files:
+            print(f"Missing config files: {', '.join(missing_files)}")
+
+        if existing_files == [os.path.abspath("config.defaults.yaml")]:
             print(
                 "Warning: You are running on the default configuration. To configure your system, "
                 "please copy `config.defaults.yaml` to `config.yaml` and modify it as you see fit."
             )
 
-        all_configs = [
-            Path("config.yaml.defaults"),
-        ] + config_files
-        all_configs = [cfg for cfg in all_configs if os.path.isfile(cfg)]
-        all_configs = [os.path.abspath(Path(c).absolute()) for c in all_configs]
-
-        cfg = Config(all_configs)
-        _cache.update({"cfg": cfg})
+        _cache["cfg"] = Config(existing_files)
 
     return _cache["cfg"]
 
