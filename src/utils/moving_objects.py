@@ -6,9 +6,7 @@ from datetime import datetime, timedelta
 from tqdm import tqdm
 
 
-def _get_object_positions(
-    obj_name: str, start_date: str, end_date: str, time_step: str = "10m"
-):
+def _get_object_positions(obj_name: str, start_date: str, end_date: str, time_step: str):
     obj = Horizons(
         id=obj_name, epochs={"start": start_date, "stop": end_date, "step": time_step}
     )
@@ -28,8 +26,8 @@ def get_object_positions(
     obj_name: str,
     start_date: str,
     end_date: str,
-    time_step: str = "10m",
-    verbose: bool = False,
+    time_step: str,
+    verbose: bool,
 ):
     # here we make sure to batch the requests in start_date -> end_date windows
     # less than 1 year long to avoid timeouts
@@ -49,20 +47,17 @@ def get_object_positions(
     else:
         date_windows = [(start_date, end_date)]
 
-    ra, dec, times = [], [], []
-    for date_window in tqdm(
-        date_windows,
-        desc=f"Fetching {obj_name} positions (batched per year if needed)",
-        disable=not verbose,
-    ):
-        ra_, dec_, times_ = _get_object_positions(
+    ra, dec, jd = [], [], []
+    iterator = tqdm(date_windows, desc=f"Fetching {obj_name} positions (batched per year if needed)", disable=not verbose)
+    for start, end in iterator:
+        ra_, dec_, times = _get_object_positions(
             obj_name=obj_name,
-            start_date=date_window[0].strftime("%Y-%m-%d"),
-            end_date=date_window[1].strftime("%Y-%m-%d"),
+            start_date=start.strftime("%Y-%m-%d"),
+            end_date=end.strftime("%Y-%m-%d"),
             time_step=time_step,
         )
         ra.extend(ra_)
         dec.extend(dec_)
-        times.extend(times_)
+        jd.extend([t.jd for t in times])
 
-    return {"ra": ra, "dec": dec, "jd": [t.jd for t in times]}
+    return {"ra": ra, "dec": dec, "jd": jd}

@@ -103,7 +103,7 @@ def test_get_objects_positions():
 
 def test_get_comets_list():
     try:
-        comets = get_comets_list(source="yfernandez")
+        comets = get_comets_list()
     except Exception as e:
         pytest.fail(f"Exception raised: {str(e)}")
 

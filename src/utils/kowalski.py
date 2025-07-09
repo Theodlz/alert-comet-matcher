@@ -1,18 +1,18 @@
 from penquins import Kowalski
 import os
 
-from ..config import load_config
-from .validate import KowalskiCredentials
+from src.config import load_config
+from src.utils.validate import KowalskiCredentials
 
-config = load_config()
+cfg = load_config()
 
 
 def get_credentials():
     return KowalskiCredentials(
-        protocol=config.get("kowalski.protocol", os.getenv("KOWALSKI_PROTOCOL")),
-        host=config.get("kowalski.host", os.getenv("KOWALSKI_HOST")),
-        port=int(config.get("kowalski.port", os.getenv("KOWALSKI_PORT"))),
-        token=config.get("kowalski.token", os.getenv("KOWALSKI_TOKEN")),
+        protocol=cfg.get("kowalski.protocol", os.getenv("KOWALSKI_PROTOCOL")),
+        host=cfg.get("kowalski.host", os.getenv("KOWALSKI_HOST")),
+        port=int(cfg.get("kowalski.port", os.getenv("KOWALSKI_PORT"))),
+        token=cfg.get("kowalski.token", os.getenv("KOWALSKI_TOKEN")),
     )
 
 
@@ -32,7 +32,7 @@ def connect_kowalski(
     kowalski = Kowalski(
         protocol=credentials.protocol,
         host=credentials.host,
-        port=credentials.port,
+        port=str(credentials.port),
         token=credentials.token,
         verbose=verbose,
         timeout=timeout,
@@ -99,7 +99,6 @@ def run_queries(
     responses = k.query(
         queries=queries, use_batch_query=True, max_n_threads=n_processes
     )
-    results = None
     if query_type == "cone_search":
         results = {}
         for instance in responses.keys():
