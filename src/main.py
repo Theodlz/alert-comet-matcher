@@ -4,13 +4,33 @@ import os
 
 from config import load_config
 
-config = load_config()
+cfg = load_config()
 
-ray_host = config["ray"]["cluster"]["host"]
-ray_port = config["ray"]["cluster"]["port"]
-ray_dashboard_host = config["ray"]["dashboard"]["host"]
-ray_dashboard_port = config["ray"]["dashboard"]["port"]
+ray_host = cfg["ray"]["cluster"]["host"]
+ray_port = cfg["ray"]["cluster"]["port"]
+ray_dashboard_host = cfg["ray"]["dashboard"]["host"]
+ray_dashboard_port = cfg["ray"]["dashboard"]["port"]
 address = f"{ray_host}:{ray_port}"
+
+
+def exclude_gitignore_file_from_ray(files_to_not_exclude):
+    """
+    Exclude files based on .gitignore file.
+    Args:
+        files_to_not_exclude: List of files present in the .gitignore file that should not be excluded.
+    Returns:
+        A string with the excludes file formatted for Ray runtime environment.
+    """
+    excludes = []
+    if os.path.exists(".gitignore"):
+        with open(".gitignore", "r") as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#") and line not in files_to_not_exclude:
+                    excludes.append(line)
+
+    excludes_str = ", ".join(f'"{e}"' for e in excludes)
+    return f"--runtime-env-json='{{\"excludes\": [{excludes_str}]}}'"
 
 
 class Cluster:
@@ -39,17 +59,11 @@ class Cluster:
         print(std_out)
         print(std_err)
 
-    def submit_job(self, job_file, nowait=False):
-        # check that the job file exists
-        if not os.path.isfile(job_file):
-            raise ValueError(f"Job file {job_file} does not exist")
-        print("Submitting job")
-        cmd = f"ray job submit --working-dir . --address={address}"
-        if nowait:
-            cmd += " --no-wait"
-        cmd += f" -- python {job_file}"
-
-        std_out, std_err = self.run_cmd(cmd)
+    def submit_job(self, job_file, nowait=False, exclude_gitignore_files=True):
+        exclude_config = exclude_gitignore_file_from_ray(["config.yaml"]) if exclude_gitignore_files else ""
+        nowait = "--no-wait" if nowait else ""
+        ray_cmd = f"RAY_RUNTIME_ENV_IGNORE_GITIGNORE=1 ray job submit --working-dir . --address={address} {nowait} {exclude_config}"
+        std_out, std_err = self.run_cmd(f"{ray_cmd} -- python {job_file}")
         print(std_out)
         print(std_err)
 
