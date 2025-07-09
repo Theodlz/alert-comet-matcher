@@ -17,3 +17,4 @@ kowalski:
 
 params:
   max_queries_per_batch:
+  comet_list_url: https://planets.ucf.edu/resources/cometlist/
