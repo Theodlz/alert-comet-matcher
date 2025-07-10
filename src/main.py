@@ -31,6 +31,16 @@ class Cluster:
         ).communicate()
         return stdout.decode("utf-8"), stderr.decode("utf-8")
 
+    def run_cmd_reel_time_output(self, cmd):
+        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
+        while True:
+            output = process.stdout.readline()
+            if output:
+                print(output, end="")
+            elif process.poll() is not None:
+                break
+        return process.returncode, process.stderr.read()
+
     def start(self):
         print("Starting Ray Cluster")
         cmd = f'ray start --head --port={ray_port} --dashboard-host "{ray_dashboard_host}" --dashboard-port={ray_dashboard_port}'
@@ -55,8 +65,8 @@ class Cluster:
         exclude_config = "--runtime-env-json='{\"excludes\": [" + ", ".join(f'"{e}"' for e in excludes) + "]}'"
         nowait = "--no-wait" if nowait else ""
         ray_cmd = f"RAY_RUNTIME_ENV_IGNORE_GITIGNORE=1 ray job submit --working-dir . --address={address} {nowait} {exclude_config}"
-        std_out, std_err = self.run_cmd(f"{ray_cmd} -- python {job_file}")
-        print(std_out)
+        return_code, std_err = self.run_cmd_reel_time_output(f"{ray_cmd} -- python {job_file}")
+        print(return_code)
         print(std_err)
 
     def cancel_job(self, job_id):
