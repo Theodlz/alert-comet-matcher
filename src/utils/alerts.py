@@ -15,11 +15,6 @@ def bulk_query_moving_objects(
     stream = cfg["params"]["alert_stream"]
     if len(objects_with_positions) == 0:
         return {}
-    # make sure the epochs are sorted for each object
-    for obj_name in objects_with_positions:
-        objects_with_positions[obj_name]["jd"] = sorted(
-            objects_with_positions[obj_name]["jd"]
-        )
 
     if len(objects_with_positions) > 1:
         # verify that all the objects have the same epochs

@@ -40,6 +40,6 @@ ray.init()
 cfg = load_config()
 fetch_comets_data(
     start_date="2017-11-07",
-    end_date="2023-11-07",
+    end_date="2026-01-01",
     data_path=cfg["ray"]["data"]["path"],
 )
