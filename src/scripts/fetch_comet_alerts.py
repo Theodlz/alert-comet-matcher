@@ -12,7 +12,7 @@ def update_alert_comets_remote(
     k,
     data_path,
     max_queries_per_batch,
-    n_processes=20,
+    n_processes=12,
     verbose=True,
     loop=False,
 ):
@@ -42,4 +42,5 @@ ray.get(update_alert_comets_remote.remote(
     None,
     cfg["ray"]["data"]["path"],
     cfg["params"]["max_queries_per_batch"],
+    loop=True
 ))
