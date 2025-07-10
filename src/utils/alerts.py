@@ -66,7 +66,6 @@ def bulk_query_moving_objects(
                     objects, catalog_parameters, radius=5.0, unit="arcsec"
                 )
             )
-        # run the queries
         results = run_queries(
             k, queries=queries, query_type="cone_search", n_processes=n_processes
         )

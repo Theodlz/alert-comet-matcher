@@ -1,3 +1,4 @@
+from collections import defaultdict
 from penquins import Kowalski
 import os
 
@@ -59,7 +60,6 @@ def build_cone_search(
     """Perform cone search in Kowalski
 
     Args:
-        k (Kowalski): Kowalski client
         objects_with_position (dict): objects with position
         catalogs_parameters (dict): catalogs parameters
         radius (float, optional): radius. Defaults to 1.0.
@@ -96,23 +96,17 @@ def run_queries(
     Returns:
         query_results (dict): query results
     """
-
     responses = k.query(
         queries=queries, use_batch_query=True, max_n_threads=n_processes
     )
     if query_type == "cone_search":
-        results = {}
+        results = defaultdict(lambda: defaultdict(list))
         for instance in responses.keys():
             for query_result in responses[instance]:
-                for catalog in query_result["data"].keys():
-                    if catalog not in results:
-                        results[catalog] = {}
-                    for obj in query_result["data"][catalog].keys():
-                        if obj not in results[catalog]:
-                            results[catalog][obj] = []
-                        results[catalog][obj].extend(query_result["data"][catalog][obj])
+                for catalog, catalog_data in query_result["data"].items():
+                    for obj, obj_data in catalog_data.items():
+                        results[catalog][obj].extend(obj_data)
+        return results
 
     else:
         raise NotImplementedError(f"query_type {query_type} not implemented yet!")
-
-    return results

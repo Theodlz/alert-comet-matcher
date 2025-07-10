@@ -1,8 +1,9 @@
+from pathlib import Path
+
 import requests
 from bs4 import BeautifulSoup
 import re
 import os
-import glob
 import joblib
 import pandas as pd
 from tqdm import tqdm
@@ -40,40 +41,23 @@ def update_alert_comets(
 
     if k is None:
         k = get_kowalski(verbose=verbose)
-    # data path should have a comet_data dir, with a comet_parquet dir
-    # create the comet_data and comet_parquet dirs if they don't exist
-    if not os.path.exists(data_path):
-        os.mkdir(data_path)
-    comet_data_path = os.path.join(data_path, "comet_data")
-    if not os.path.exists(comet_data_path):
-        os.mkdir(comet_data_path)
-    comet_positions_path = os.path.join(comet_data_path, "positions")
-    if not os.path.exists(comet_positions_path):
-        os.mkdir(comet_positions_path)
 
-    # look for the parquet files in this directory
-    parquet_files = []
-    for file in glob.glob(os.path.join(comet_positions_path, "*.parquet")):
-        if file.endswith(".parquet"):
-            parquet_files.append(file)
+    comet_data_positions_path = os.path.join(data_path, "comet_data", "positions")
+    if not os.path.exists(comet_data_positions_path):
+        os.makedirs(comet_data_positions_path, exist_ok=True)
+
+    parquet_files = list(Path(comet_data_positions_path).glob("*.parquet"))
 
     # Extract comets name by removing the last three parts of the filename
-    comet_names = {}
-    for file in parquet_files:
-        split_name = file.split("/")[-1].split("_")
-        # get everything before the second to last element
-        comet_name = "_".join(split_name[:-3])
-        comet_names[comet_name] = file
-
-    comet_names2 = {
+    comet_names = {
         "_".join(os.path.basename(file).split("_")[:-3]): file
         for file in parquet_files
     }
-    alerts_path = os.path.join(comet_data_path, "alert_comets.joblib")
+    alert_comets_path = os.path.join(data_path, "comet_data", "alert_comets.joblib")
 
     # Load existing alerts if available
-    if os.path.exists(alerts_path):
-        existing_comet_alerts = joblib.load(open(alerts_path, "rb"))
+    if os.path.exists(alert_comets_path):
+        existing_comet_alerts = joblib.load(open(alert_comets_path, "rb"))
         print(f"Found {len(existing_comet_alerts)} comets with existing alerts")
     else:
         existing_comet_alerts = {}
@@ -85,7 +69,7 @@ def update_alert_comets(
     }
 
     if not comet_names:
-        print("No comets to query for, exiting")
+        print("No unprocessed comets to query, exiting")
         return
 
     print(f"Found {len(comet_names)} comets to query for")
@@ -110,7 +94,7 @@ def update_alert_comets(
 
     # add the new alerts to existing_comet_alerts
     existing_comet_alerts = {**existing_comet_alerts, **comet_alerts}
-    joblib.dump(existing_comet_alerts, open(alerts_path, "wb"))
+    joblib.dump(existing_comet_alerts, open(alert_comets_path, "wb"))
 
 
 def get_comet_data(comet_name: str, start_date, end_date, time_step, data_path, verbose):
