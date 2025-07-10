@@ -42,42 +42,39 @@ def update_alert_comets(
     if k is None:
         k = get_kowalski(verbose=verbose)
 
-    comet_data_positions_path = os.path.join(data_path, "comet_data", "positions")
-    if not os.path.exists(comet_data_positions_path):
-        os.makedirs(comet_data_positions_path, exist_ok=True)
+    positions_path = os.path.join(data_path, "comet_data", "positions")
+    if not os.path.exists(positions_path):
+        os.makedirs(positions_path, exist_ok=True)
 
-    parquet_files = list(Path(comet_data_positions_path).glob("*.parquet"))
+    parquet_files = list(Path(positions_path).glob("*.parquet"))
 
     # Extract comets name by removing the last three parts of the filename
-    comet_names = {
+    comets_to_process = {
         "_".join(os.path.basename(file).split("_")[:-3]): file
         for file in parquet_files
     }
-    alert_comets_path = os.path.join(data_path, "comet_data", "alert_comets.joblib")
+    comets_path = os.path.join(data_path, "comet_data", "comets")
+    if not os.path.exists(comets_path):
+        os.makedirs(comets_path, exist_ok=True)
 
-    # Load existing alerts if available
-    if os.path.exists(alert_comets_path):
-        existing_comet_alerts = joblib.load(open(alert_comets_path, "rb"))
-        print(f"Found {len(existing_comet_alerts)} comets with existing alerts")
-    else:
-        existing_comet_alerts = {}
+    # Filter out processed comets (those with existing file in comets_path)
+    total_comets = len(comets_to_process)
+    for comet_name in comets_to_process:
+        if os.path.exists(os.path.join(comets_path, comet_name)):
+            del comets_to_process[comet_name]
 
-    # remove from comet_names the ones that already have an entry in existing_comet_alerts
-    comet_names = {
-        name: path for name, path in comet_names.items()
-        if name not in existing_comet_alerts
-    }
+    print(f"Found {total_comets - len(comets_to_process)} comets with existing alerts")
 
-    if not comet_names:
-        print("No unprocessed comets to query, exiting")
+    if not comets_to_process:
+        print("No comets to process, exiting")
         return
 
-    print(f"Found {len(comet_names)} comets to query for")
+    print(f"Found {len(comets_to_process)} comets to process")
 
     # open the parquet files with pandas
     comet_positions = {}
-    for comet_name in tqdm(comet_names, desc="Reading parquet files", disable=not verbose):
-        data = pd.read_parquet(comet_names[comet_name])
+    for comet_name in tqdm(comets_to_process, desc="Reading parquet files", disable=not verbose):
+        data = pd.read_parquet(comets_to_process[comet_name])
         comet_positions[comet_name] = {
             "ra": data["ra"].values,
             "dec": data["dec"].values,
@@ -98,9 +95,8 @@ def update_alert_comets(
 
 
 def get_comet_data(comet_name: str, start_date, end_date, time_step, data_path, verbose):
-    # save the dataframe to a parquet file in the data_path + positions dir
-    comet_data_path = os.path.join(data_path, "comet_data")
-    comet_positions_path = os.path.join(comet_data_path, "positions")
+    # save the dataframe to a parquet file positions dir
+    comet_positions_path = os.path.join(data_path, "comet_data", "positions")
     if not os.path.exists(comet_positions_path):
         os.makedirs(comet_positions_path, exist_ok=True)
 
