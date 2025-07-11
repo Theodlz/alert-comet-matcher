@@ -13,8 +13,6 @@ ray:
   dashboard:
     host: localhost
     port: 8265
-  data:
-    path: <your_cluster_data_path> # example: /Users/theodlz/projects/comets/data
 
 kowalski:
   protocol: https
@@ -23,6 +21,7 @@ kowalski:
   token: <your_token_here>
 
 params:
-  max_queries_per_batch:
+  max_queries_per_batch: 10000
   comet_list_url: https://planets.ucf.edu/resources/cometlist/
   alert_stream: ZTF_alerts
+  data_path: <path_where_to_store_retrieved_data> # example: /Users/.../projects/alert-tools/data

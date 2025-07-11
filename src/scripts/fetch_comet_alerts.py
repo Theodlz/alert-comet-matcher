@@ -10,7 +10,6 @@ cfg = load_config()
 @ray.remote
 def update_alert_comets_remote(
     k,
-    data_path,
     max_queries_per_batch,
     n_processes=12,
     verbose=True,
@@ -21,7 +20,6 @@ def update_alert_comets_remote(
         while True:
             update_alert_comets(
                 k,
-                data_path,
                 n_processes,
                 max_queries_per_batch,
                 verbose,
@@ -30,7 +28,6 @@ def update_alert_comets_remote(
     else:
         update_alert_comets(
             k,
-            data_path,
             n_processes,
             max_queries_per_batch,
             verbose,
@@ -40,7 +37,6 @@ def update_alert_comets_remote(
 ray.init()
 ray.get(update_alert_comets_remote.remote(
     None,
-    cfg["ray"]["data"]["path"],
     cfg["params"]["max_queries_per_batch"],
     loop=True
 ))
