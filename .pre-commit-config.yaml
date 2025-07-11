@@ -16,4 +16,5 @@ repos:
     hooks:
       - id: flake8
         pass_filenames: true
+        args: [--config=.flake8]
         exclude: nb|.ipynb_checkpoints|data|dev|letsencrypt|logs|dask-worker-space|__init__.py
