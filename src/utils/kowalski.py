@@ -1,18 +1,19 @@
+from collections import defaultdict
 from penquins import Kowalski
 import os
-from config import load_config
 
-from utils.validate import KowalskiCredentials
+from src.config import load_config
+from src.utils.validate import KowalskiCredentials
 
-config = load_config()
+cfg = load_config()
 
 
 def get_credentials():
     return KowalskiCredentials(
-        protocol=config.get("kowalski.protocol", os.getenv("KOWALSKI_PROTOCOL")),
-        host=config.get("kowalski.host", os.getenv("KOWALSKI_HOST")),
-        port=int(config.get("kowalski.port", os.getenv("KOWALSKI_PORT"))),
-        token=config.get("kowalski.token", os.getenv("KOWALSKI_TOKEN")),
+        protocol=cfg.get("kowalski.protocol", os.getenv("KOWALSKI_PROTOCOL")),
+        host=cfg.get("kowalski.host", os.getenv("KOWALSKI_HOST")),
+        port=int(cfg.get("kowalski.port", os.getenv("KOWALSKI_PORT"))),
+        token=cfg.get("kowalski.token", os.getenv("KOWALSKI_TOKEN")),
     )
 
 
@@ -23,6 +24,8 @@ def connect_kowalski(
 
     Args:
         credentials (KowalskiCredentials): Kowalski credentials
+        verbose (bool, optional): verbose. Defaults to False.
+        timeout (int, optional): timeout. Defaults to 6000.
 
     Returns:
         Kowalski: Kowalski client
@@ -32,7 +35,7 @@ def connect_kowalski(
     kowalski = Kowalski(
         protocol=credentials.protocol,
         host=credentials.host,
-        port=credentials.port,
+        port=str(credentials.port),
         token=credentials.token,
         verbose=verbose,
         timeout=timeout,
@@ -59,7 +62,6 @@ def build_cone_search(
     """Perform cone search in Kowalski
 
     Args:
-        k (Kowalski): Kowalski client
         objects_with_position (dict): objects with position
         catalogs_parameters (dict): catalogs parameters
         radius (float, optional): radius. Defaults to 1.0.
@@ -82,37 +84,29 @@ def build_cone_search(
     }
 
 
-def run_queries(
-    k: Kowalski, queries: list[dict], query_type: str, n_processes: int = 20
-):
+def run_queries(k: Kowalski, queries: list[dict], query_type: str, n_processes: int):
     """Run query in Kowalski
 
     Args:
         k (Kowalski): Kowalski client
-        query (dict): query
+        queries (list[dict]): list of queries
         query_type (str): query type. One of 'cone_search', 'near', 'aggregate'
+        n_processes (int, optional): number of processes.
 
     Returns:
         query_results (dict): query results
     """
-
     responses = k.query(
         queries=queries, use_batch_query=True, max_n_threads=n_processes
     )
-    results = None
     if query_type == "cone_search":
-        results = {}
+        results = defaultdict(lambda: defaultdict(list))
         for instance in responses.keys():
             for query_result in responses[instance]:
-                for catalog in query_result["data"].keys():
-                    if catalog not in results:
-                        results[catalog] = {}
-                    for obj in query_result["data"][catalog].keys():
-                        if obj not in results[catalog]:
-                            results[catalog][obj] = []
-                        results[catalog][obj].extend(query_result["data"][catalog][obj])
+                for catalog, catalog_data in query_result["data"].items():
+                    for obj, obj_data in catalog_data.items():
+                        results[catalog][obj].extend(obj_data)
+        return results
 
     else:
         raise NotImplementedError(f"query_type {query_type} not implemented yet!")
-
-    return results

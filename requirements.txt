@@ -1,11 +1,12 @@
 ray[default]
 matplotlib
 requests
-joblib
 penquins
 pandas
 numpy
 astropy
 astroquery
 pre-commit
+fire
 pydantic==1.10.13
+pyarrow>=14.0.1

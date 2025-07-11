@@ -1,7 +1,10 @@
+.idea
 comet_data
 .env
+.venv
 env
 .DS_Store
 __pycache__
 .pytest_cache
 node_modules
+config.yaml

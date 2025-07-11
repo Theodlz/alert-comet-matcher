@@ -1,5 +1,5 @@
 import ray
-from alert_comets.utils.moving_objects import get_object_positions
+from src.utils.moving_objects import get_object_positions
 
 # connect to the Ray cluster
 ray.init()

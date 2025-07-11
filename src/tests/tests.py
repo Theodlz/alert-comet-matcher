@@ -1,14 +1,14 @@
 import pytest
 
-from alert_comets.utils.validate import (
+from src.utils.validate import (
     MovingObject,
     ObjectWithPosition,
     ObjectsWithPosition,
     KowalskiCredentials,
 )
-from alert_comets.utils.moving_objects import get_object_positions
-from alert_comets.utils.comets import get_comets_list
-from alert_comets.utils.kowalski import build_cone_search
+from src.utils.moving_objects import get_object_positions
+from src.utils.comets import get_comets_list
+from src.utils.kowalski import build_cone_search
 
 
 def test_validate_kowalski_credentials():
@@ -83,7 +83,9 @@ def test_validate_moving_object():
 
 def test_get_objects_positions():
     try:
-        positions = get_object_positions("C/2020 F3", "2023-07-30", "2023-07-31")
+        positions = get_object_positions(
+            "C/2020 F3", "2023-07-30", "2023-07-31", "10m", verbose=False
+        )
     except Exception as e:
         assert False, f"Exception raised: {str(e)}"
 
@@ -103,7 +105,7 @@ def test_get_objects_positions():
 
 def test_get_comets_list():
     try:
-        comets = get_comets_list(source="yfernandez")
+        comets = get_comets_list()
     except Exception as e:
         pytest.fail(f"Exception raised: {str(e)}")
 
