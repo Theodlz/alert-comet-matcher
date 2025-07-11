@@ -68,8 +68,8 @@ def update_alert_comets(
         if os.path.exists(comet_alerts_file(comet_name)):
             with open(comet_alerts_file(comet_name), "r", encoding="utf-8") as f:
                 data = json.load(f)
-            processed_range = data.get("processed_epochs", {})
-            if processed_range["start"] <= first_epoch and processed_range["end"] >= last_epoch:
+            processed_range = data.get("processed_epochs")
+            if is_epoch_processed(first_epoch, processed_range) and is_epoch_processed(last_epoch, processed_range):
                 continue
         comets_to_process[comet_name] = comets[comet_name]
 

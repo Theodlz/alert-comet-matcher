@@ -38,7 +38,6 @@ def bulk_query_moving_objects(
     epochs = tuple(objects_with_positions[list(objects_with_positions.keys())[0]]["jd"])
     max_queries_per_batch = min(max_queries_per_batch, len(epochs)) if max_queries_per_batch else len(epochs)
     n_batches = int(len(epochs) / max_queries_per_batch)
-    all_results = {}
     with tqdm(total=n_batches * max_queries_per_batch, disable=not verbose) as pbar:
         for i in range(n_batches):
             queries = []
@@ -108,7 +107,6 @@ def bulk_query_moving_objects(
                 with open(comet_alerts_file(obj_name), "w", encoding="utf-8") as f:
                     json.dump(data, f, indent=2)
 
-            for obj_name, result in results[stream].items():
-                all_results.setdefault(obj_name, []).extend(result)
-
             pbar.update(max_queries_per_batch)
+
+    return
