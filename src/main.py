@@ -1,3 +1,4 @@
+import json
 import fire
 import subprocess
 import os
@@ -61,9 +62,12 @@ class Cluster:
         print(std_err)
 
     def submit_job(self, job_file, nowait=False):
-        excludes = get_files_to_exclude(cfg["ray"]["files_to_include"])
-        exclude_config = "--runtime-env-json='{\"excludes\": [" + ", ".join(f'"{e}"' for e in excludes) + "]}'"
+        # Exclude files from being sent to the cluster
+        runtime_env = {"excludes": get_files_to_exclude(cfg["ray"]["files_to_include"])}
+        exclude_config = f"--runtime-env-json='{json.dumps(runtime_env)}'"
+        # Determine if the job should be submitted with --no-wait
         nowait = "--no-wait" if nowait else ""
+        # Submit the job
         ray_cmd = f"RAY_RUNTIME_ENV_IGNORE_GITIGNORE=1 ray job submit --working-dir . --address={address} {nowait} {exclude_config}"
         return_code, std_err = self.run_cmd_reel_time_output(f"{ray_cmd} -- python {job_file}")
         print(return_code)
