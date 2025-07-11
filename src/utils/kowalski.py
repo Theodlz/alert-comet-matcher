@@ -24,6 +24,8 @@ def connect_kowalski(
 
     Args:
         credentials (KowalskiCredentials): Kowalski credentials
+        verbose (bool, optional): verbose. Defaults to False.
+        timeout (int, optional): timeout. Defaults to 6000.
 
     Returns:
         Kowalski: Kowalski client
@@ -82,9 +84,7 @@ def build_cone_search(
     }
 
 
-def run_queries(
-    k: Kowalski, queries: list[dict], query_type: str, n_processes: int
-):
+def run_queries(k: Kowalski, queries: list[dict], query_type: str, n_processes: int):
     """Run query in Kowalski
 
     Args:
