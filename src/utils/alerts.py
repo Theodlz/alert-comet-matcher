@@ -52,8 +52,8 @@ def bulk_query_moving_objects(
                         if is_epoch_processed(epoch, data["processed_epochs"]):
                             continue
                     objects[obj_name] = [
-                        objects_with_positions[obj_name]["ra"][i * max_queries_per_batch + j],
-                        objects_with_positions[obj_name]["dec"][i * max_queries_per_batch + j],
+                        objects_with_positions[obj_name]["ra"][i + j],
+                        objects_with_positions[obj_name]["dec"][i + j],
                     ]
                 if len(objects) == 0:
                     continue
