@@ -6,7 +6,9 @@ from datetime import datetime, timedelta
 from tqdm import tqdm
 
 
-def _get_object_positions(obj_name: str, start_date: str, end_date: str, time_step: str):
+def _get_object_positions(
+    obj_name: str, start_date: str, end_date: str, time_step: str
+):
     obj = Horizons(
         id=obj_name, epochs={"start": start_date, "stop": end_date, "step": time_step}
     )
@@ -48,7 +50,11 @@ def get_object_positions(
         date_windows = [(start_date, end_date)]
 
     ra, dec, jd = [], [], []
-    iterator = tqdm(date_windows, desc=f"Fetching {obj_name} positions (batched per year if needed)", disable=not verbose)
+    iterator = tqdm(
+        date_windows,
+        desc=f"Fetching {obj_name} positions (batched per year if needed)",
+        disable=not verbose,
+    )
     for start, end in iterator:
         ra_, dec_, times = _get_object_positions(
             obj_name=obj_name,

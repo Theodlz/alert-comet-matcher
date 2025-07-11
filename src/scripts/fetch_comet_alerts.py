@@ -35,8 +35,8 @@ def update_alert_comets_remote(
 
 
 ray.init()
-ray.get(update_alert_comets_remote.remote(
-    None,
-    cfg["params"]["max_queries_per_batch"],
-    loop=True
-))
+ray.get(
+    update_alert_comets_remote.remote(
+        None, cfg["params"]["max_queries_per_batch"], loop=True
+    )
+)

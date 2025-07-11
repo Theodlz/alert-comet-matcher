@@ -84,11 +84,7 @@ def test_validate_moving_object():
 def test_get_objects_positions():
     try:
         positions = get_object_positions(
-            "C/2020 F3",
-            "2023-07-30",
-            "2023-07-31",
-            "10m",
-            verbose=False
+            "C/2020 F3", "2023-07-30", "2023-07-31", "10m", verbose=False
         )
     except Exception as e:
         assert False, f"Exception raised: {str(e)}"

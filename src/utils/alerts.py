@@ -8,6 +8,7 @@ from src.config import load_config
 
 cfg = load_config()
 
+
 def is_epoch_processed(epoch, processed_epochs):
     return processed_epochs["start"] <= epoch <= processed_epochs["end"]
 
@@ -45,16 +46,22 @@ def bulk_query_moving_objects(
 
     # reformat to have a dict with keys as epochs and values as lists of objects and their positions at that epoch
     epochs = tuple(objects_with_positions[list(objects_with_positions.keys())[0]]["jd"])
-    max_queries_per_batch = min(max_queries_per_batch, len(epochs)) if max_queries_per_batch else len(epochs)
+    max_queries_per_batch = (
+        min(max_queries_per_batch, len(epochs))
+        if max_queries_per_batch
+        else len(epochs)
+    )
     with tqdm(total=len(epochs), disable=not verbose) as pbar:
         # process batch of max_queries_per_batch epochs at a time until all epochs are processed
         for i in range(0, len(epochs), max_queries_per_batch):
             queries = []
-            batch_epochs = epochs[i: i + max_queries_per_batch]
+            batch_epochs = epochs[i : i + max_queries_per_batch]
             for j, epoch in enumerate(batch_epochs):
                 objects = {}
                 for obj_name in objects_with_positions:
-                    if not obj_processed_epochs[obj_name] or not is_epoch_processed(epoch, obj_processed_epochs[obj_name]):
+                    if not obj_processed_epochs[obj_name] or not is_epoch_processed(
+                        epoch, obj_processed_epochs[obj_name]
+                    ):
                         objects[obj_name] = [
                             objects_with_positions[obj_name]["ra"][i + j],
                             objects_with_positions[obj_name]["dec"][i + j],
@@ -96,17 +103,30 @@ def bulk_query_moving_objects(
             for obj_name, result in results[stream].items():
                 if not os.path.exists(comet_alerts_file(obj_name)):
                     data = {
-                        "processed_epochs": {"start": batch_epochs[0], "end": batch_epochs[-1]},
+                        "processed_epochs": {
+                            "start": batch_epochs[0],
+                            "end": batch_epochs[-1],
+                        },
                         "results": result,
                     }
                 else:
                     with open(comet_alerts_file(obj_name), "r", encoding="utf-8") as f:
                         data = json.load(f)
-                    data["processed_epochs"]["start"] = min(data["processed_epochs"]["start"], batch_epochs[0])
-                    data["processed_epochs"]["end"] = max(data["processed_epochs"]["end"], batch_epochs[-1])
+                    data["processed_epochs"]["start"] = min(
+                        data["processed_epochs"]["start"], batch_epochs[0]
+                    )
+                    data["processed_epochs"]["end"] = max(
+                        data["processed_epochs"]["end"], batch_epochs[-1]
+                    )
 
-                    existing_alerts_candid = {alert["candid"] for alert in data["results"]}
-                    deduplicated_result = [alert for alert in result if alert["candid"] not in existing_alerts_candid]
+                    existing_alerts_candid = {
+                        alert["candid"] for alert in data["results"]
+                    }
+                    deduplicated_result = [
+                        alert
+                        for alert in result
+                        if alert["candid"] not in existing_alerts_candid
+                    ]
                     data["results"].extend(deduplicated_result)
 
                 with open(comet_alerts_file(obj_name), "w", encoding="utf-8") as f:

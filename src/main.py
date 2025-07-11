@@ -33,7 +33,9 @@ class Cluster:
         return stdout.decode("utf-8"), stderr.decode("utf-8")
 
     def run_cmd_reel_time_output(self, cmd):
-        process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True)
+        process = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True
+        )
         while True:
             output = process.stdout.readline()
             if output:
@@ -69,7 +71,9 @@ class Cluster:
         nowait = "--no-wait" if nowait else ""
         # Submit the job
         ray_cmd = f"RAY_RUNTIME_ENV_IGNORE_GITIGNORE=1 ray job submit --working-dir . --address={address} {nowait} {exclude_config}"
-        return_code, std_err = self.run_cmd_reel_time_output(f"{ray_cmd} -- python {job_file}")
+        return_code, std_err = self.run_cmd_reel_time_output(
+            f"{ray_cmd} -- python {job_file}"
+        )
         print(return_code)
         print(std_err)
 

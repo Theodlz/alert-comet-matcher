@@ -10,11 +10,11 @@ class CometDataFetcher:
     def __init__(self):
         pass
 
-    def get_comet_data_remote(self, comet_name, start_date, end_date, verbose, time_step="10m"):
+    def get_comet_data_remote(
+        self, comet_name, start_date, end_date, verbose, time_step="10m"
+    ):
         try:
-            return get_comet_data(
-                comet_name, start_date, end_date, time_step, verbose
-            )
+            return get_comet_data(comet_name, start_date, end_date, time_step, verbose)
         except Exception as e:
             print(f"Error fetching data for {comet_name}: {str(e)}")
 

@@ -16,7 +16,7 @@ from src.utils.paths import (
     comet_alerts_file,
     comet_alerts_folder,
     comet_positions_folder,
-    comet_positions_file
+    comet_positions_file,
 )
 
 cfg = load_config()
@@ -54,7 +54,9 @@ def update_alert_comets(
     parquet_files = list(Path(comet_positions_folder()).glob("*.parquet"))
 
     # Extract comets name by removing the last three parts of the filename
-    comets = { "_".join(os.path.basename(file).split("_")[:-3]): file for file in parquet_files }
+    comets = {
+        "_".join(os.path.basename(file).split("_")[:-3]): file for file in parquet_files
+    }
     if not os.path.exists(comet_alerts_folder()):
         os.makedirs(comet_alerts_folder(), exist_ok=True)
 
@@ -69,7 +71,9 @@ def update_alert_comets(
             with open(comet_alerts_file(comet_name), "r", encoding="utf-8") as f:
                 data = json.load(f)
             processed_range = data.get("processed_epochs")
-            if is_epoch_processed(first_epoch, processed_range) and is_epoch_processed(last_epoch, processed_range):
+            if is_epoch_processed(first_epoch, processed_range) and is_epoch_processed(
+                last_epoch, processed_range
+            ):
                 continue
         comets_to_process[comet_name] = comets[comet_name]
 
@@ -83,7 +87,9 @@ def update_alert_comets(
 
     # open the parquet files with pandas
     comet_positions = {}
-    for comet_name in tqdm(comets_to_process, desc="Reading parquet files", disable=not verbose):
+    for comet_name in tqdm(
+        comets_to_process, desc="Reading parquet files", disable=not verbose
+    ):
         data = pd.read_parquet(comets_to_process[comet_name])
         comet_positions[comet_name] = {
             "ra": data["ra"].values,
