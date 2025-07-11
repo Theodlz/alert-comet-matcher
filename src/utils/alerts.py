@@ -37,11 +37,11 @@ def bulk_query_moving_objects(
     # reformat to have a dict with keys as epochs and values as lists of objects and their positions at that epoch
     epochs = tuple(objects_with_positions[list(objects_with_positions.keys())[0]]["jd"])
     max_queries_per_batch = min(max_queries_per_batch, len(epochs)) if max_queries_per_batch else len(epochs)
-    n_batches = int(len(epochs) / max_queries_per_batch)
-    with tqdm(total=n_batches * max_queries_per_batch, disable=not verbose) as pbar:
-        for i in range(n_batches):
+    with tqdm(total=len(epochs), disable=not verbose) as pbar:
+        # process batch of max_queries_per_batch epochs at a time until all epochs are processed
+        for i in range(0, len(epochs), max_queries_per_batch):
             queries = []
-            batch_epochs = epochs[i * max_queries_per_batch: (i + 1) * max_queries_per_batch]
+            batch_epochs = epochs[i: i + max_queries_per_batch]
             for j, epoch in enumerate(batch_epochs):
                 objects = {}
                 # skip objects that have already been processed for this epoch
@@ -107,6 +107,6 @@ def bulk_query_moving_objects(
                 with open(comet_alerts_file(obj_name), "w", encoding="utf-8") as f:
                     json.dump(data, f, indent=2)
 
-            pbar.update(max_queries_per_batch)
+            pbar.update(len(batch_epochs))
 
     return
