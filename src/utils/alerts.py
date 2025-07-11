@@ -34,6 +34,15 @@ def bulk_query_moving_objects(
 
     print("Generating queries...")
 
+    obj_processed_epochs = {}
+    for obj_name in objects_with_positions:
+        if os.path.exists(comet_alerts_file(obj_name)):
+            with open(comet_alerts_file(obj_name), "r", encoding="utf-8") as f:
+                data = json.load(f)
+            obj_processed_epochs[obj_name] = data["processed_epochs"]
+        else:
+            obj_processed_epochs[obj_name] = set()
+
     # reformat to have a dict with keys as epochs and values as lists of objects and their positions at that epoch
     epochs = tuple(objects_with_positions[list(objects_with_positions.keys())[0]]["jd"])
     max_queries_per_batch = min(max_queries_per_batch, len(epochs)) if max_queries_per_batch else len(epochs)
@@ -44,17 +53,12 @@ def bulk_query_moving_objects(
             batch_epochs = epochs[i: i + max_queries_per_batch]
             for j, epoch in enumerate(batch_epochs):
                 objects = {}
-                # skip objects that have already been processed for this epoch
                 for obj_name in objects_with_positions:
-                    if os.path.exists(comet_alerts_file(obj_name)):
-                        with open(comet_alerts_file(obj_name), "r", encoding="utf-8") as f:
-                            data = json.load(f)
-                        if is_epoch_processed(epoch, data["processed_epochs"]):
-                            continue
-                    objects[obj_name] = [
-                        objects_with_positions[obj_name]["ra"][i + j],
-                        objects_with_positions[obj_name]["dec"][i + j],
-                    ]
+                    if not obj_processed_epochs[obj_name] or not is_epoch_processed(epoch, obj_processed_epochs[obj_name]):
+                        objects[obj_name] = [
+                            objects_with_positions[obj_name]["ra"][i + j],
+                            objects_with_positions[obj_name]["dec"][i + j],
+                        ]
                 if len(objects) == 0:
                     continue
 
@@ -91,8 +95,8 @@ def bulk_query_moving_objects(
             # save results to individual comet files
             for obj_name, result in results[stream].items():
                 if os.path.exists(comet_alerts_file(obj_name)):
-                    with open(comet_alerts_file(obj_name), "r", encoding="utf-8") as file:
-                        data = json.load(file)
+                    with open(comet_alerts_file(obj_name), "r", encoding="utf-8") as f:
+                        data = json.load(f)
                     if batch_epochs[-1] > data["processed_epochs"]["end"]:
                         data["processed_epochs"]["end"] = batch_epochs[-1]
                     if batch_epochs[0] < data["processed_epochs"]["start"]:
