@@ -9,7 +9,7 @@ import pandas as pd
 from tqdm import tqdm
 from datetime import datetime
 from src.config import load_config
-from src.utils.alerts import bulk_query_moving_objects
+from src.utils.alerts import bulk_query_moving_objects, is_epoch_processed
 from src.utils.kowalski import get_kowalski
 from src.utils.moving_objects import get_object_positions
 from src.utils.paths import (
