@@ -1,12 +1,20 @@
+import json
+import os
 from tqdm import tqdm
 
+from src.utils.comets import get_comet_path
 from src.utils.kowalski import build_cone_search, run_queries, Kowalski
 from src.config import load_config
 
 cfg = load_config()
 
+def is_epoch_processed(epoch, processed_epochs):
+    return processed_epochs["start"] <= epoch <= processed_epochs["end"]
+
+
 def bulk_query_moving_objects(
     k: Kowalski,
+    data_path: str,
     objects_with_positions: dict,
     n_processes,
     max_queries_per_batch,
@@ -29,24 +37,29 @@ def bulk_query_moving_objects(
 
     # reformat to have a dict with keys as epochs and values as lists of objects and their positions at that epoch
     epochs = tuple(objects_with_positions[list(objects_with_positions.keys())[0]]["jd"])
-
     max_queries_per_batch = min(max_queries_per_batch, len(epochs)) if max_queries_per_batch else len(epochs)
     n_batches = int(len(epochs) / max_queries_per_batch)
-
     all_results = {}
     with tqdm(total=n_batches * max_queries_per_batch, disable=not verbose) as pbar:
         for i in range(n_batches):
             queries = []
-            for j, epoch in enumerate(
-                    epochs[i * max_queries_per_batch: (i + 1) * max_queries_per_batch]
-            ):
-                objects = {
-                    obj_name: [
+            batch_epochs = epochs[i * max_queries_per_batch: (i + 1) * max_queries_per_batch]
+            for j, epoch in enumerate(batch_epochs):
+                objects = {}
+                # skip objects that have already been processed for this epoch
+                for obj_name in objects_with_positions:
+                    comet_path = get_comet_path(data_path, obj_name)
+                    if os.path.exists(comet_path):
+                        with open(comet_path, "r", encoding="utf-8") as f:
+                            data = json.load(f)
+                        if is_epoch_processed(epoch, data["processed_epochs"]):
+                            continue
+                    objects[obj_name] = [
                         objects_with_positions[obj_name]["ra"][i * max_queries_per_batch + j],
                         objects_with_positions[obj_name]["dec"][i * max_queries_per_batch + j],
                     ]
-                    for obj_name in objects_with_positions
-                }
+                if len(objects) == 0:
+                    continue
 
                 catalog_parameters = {
                     stream: {
@@ -78,9 +91,27 @@ def bulk_query_moving_objects(
                 n_processes=n_processes,
             )
 
+            # save results to individual comet files
+            for obj_name, result in results[stream].items():
+                comet_path = get_comet_path(data_path, obj_name)
+                if os.path.exists(comet_path):
+                    with open(comet_path, "r", encoding="utf-8") as file:
+                        data = json.load(file)
+                    if batch_epochs[-1] > data["processed_epochs"]["end"]:
+                        data["processed_epochs"]["end"] = batch_epochs[-1]
+                    if batch_epochs[0] < data["processed_epochs"]["start"]:
+                        data["processed_epochs"]["start"] = batch_epochs[0]
+                    data["results"].extend(result)
+                else:
+                    data = {
+                        "processed_epochs": {"start": batch_epochs[0], "end": batch_epochs[-1]},
+                        "results": result,
+                    }
+
+                with open(comet_path, "w", encoding="utf-8") as file:
+                    json.dump(data, file, indent=2)
+
             for obj_name, result in results[stream].items():
                 all_results.setdefault(obj_name, []).extend(result)
 
             pbar.update(max_queries_per_batch)
-
-    return all_results

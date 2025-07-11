@@ -1,7 +1,6 @@
 ray[default]
 matplotlib
 requests
-joblib
 penquins
 pandas
 numpy
