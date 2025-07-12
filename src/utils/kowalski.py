@@ -84,14 +84,23 @@ def build_cone_search(
     }
 
 
-def run_queries(k: Kowalski, queries: list[dict], query_type: str, n_processes: int):
-    """Run query in Kowalski
+def run_queries(
+    k: Kowalski,
+    queries: list[dict],
+    query_type: str,
+    n_processes: int,
+    stream: str,
+    seen_ids: set,
+):
+    """Run query in Kowalski and return results without duplicates
 
     Args:
         k (Kowalski): Kowalski client
         queries (list[dict]): list of queries
         query_type (str): query type. One of 'cone_search', 'near', 'aggregate'
         n_processes (int, optional): number of processes.
+        stream (str): alert stream name
+        seen_ids (set): set of seen ids to avoid duplicates
 
     Returns:
         query_results (dict): query results
@@ -99,14 +108,16 @@ def run_queries(k: Kowalski, queries: list[dict], query_type: str, n_processes: 
     responses = k.query(
         queries=queries, use_batch_query=True, max_n_threads=n_processes
     )
-    if query_type == "cone_search":
-        results = defaultdict(lambda: defaultdict(list))
-        for instance in responses.keys():
-            for query_result in responses[instance]:
-                for catalog, catalog_data in query_result["data"].items():
-                    for obj, obj_data in catalog_data.items():
-                        results[catalog][obj].extend(obj_data)
-        return results
-
-    else:
+    if query_type != "cone_search":
         raise NotImplementedError(f"query_type {query_type} not implemented yet!")
+
+    results = defaultdict(list)
+    for query_result_list in responses.values():
+        for query_result in query_result_list:
+            for obj, obj_data in query_result["data"][stream].items():
+                new_items = [
+                    item for item in obj_data if item["candid"] not in seen_ids
+                ]
+                seen_ids.update(item["candid"] for item in new_items)
+                results[obj].extend(new_items)
+    return results
