@@ -16,34 +16,37 @@ for ZTF alerts via cone searches.
 
 Ultimately, the goal is to train a binary classifier that can automatically
 identify potential comet candidates in the ZTF alert stream.
+<br/>
 
 ## Installation
 ```bash
   pip install -r requirements.txt
 ```
+<br/>
 
 ## Usage
 
-### Start a ray cluster
+#### Start a ray cluster
 ```bash
   python main.py start
 ```
 
-### Submit a job to the cluster
+#### Submit a job to the cluster
 ```bash
-  python main.py submit_job --job_file=scripts/<your_script>.py
+  python src/main.py submit_job --job_file=scripts/<your_script>.py
 ```
+<br/>
 
 ## Comet Alert Matching Application
 
-### Generate comet positions and store them as Parquet files:
+#### Generate comet positions and store them as Parquet files:
 ```bash
-  python main.py submit_job --job_file=scripts/generate_comets_positions.py --nowait
+  python src/main.py submit_job --job_file=scripts/generate_comets_positions.py --nowait
 ```
 > This script retrieves comet positions over the past 9 years.
 > Stop it early if you are testing.
 
-### Fetch ZTF alerts corresponding to those positions and store them as JSON files:
+#### Fetch ZTF alerts corresponding to those positions and store them as JSON files:
 ```bash
-  python main.py submit_job --job_file=scripts/fetch_comet_alerts.py
+  python src/main.py submit_job --job_file=scripts/fetch_comet_alerts.py
 ```
