@@ -23,4 +23,4 @@ def comet_positions_folder():
 
 
 def comet_positions_file(file_name):
-    return join_paths("comet_positions", file_name)
+    return join_paths("comet_positions", f"{file_name}.parquet")
