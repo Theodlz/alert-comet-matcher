@@ -34,6 +34,8 @@ identify potential comet candidates in the ZTF alert stream.
   python main.py submit_job --job_file=scripts/<your_script>.py
 ```
 
+## Comet Alert Matching Application
+
 ### Generate comet positions and store them as Parquet files:
 ```bash
   python main.py submit_job --job_file=scripts/generate_comets_positions.py --nowait
