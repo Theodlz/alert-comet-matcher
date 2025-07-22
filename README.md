@@ -16,13 +16,12 @@ for ZTF alerts via cone searches.
 
 Ultimately, the goal is to train a binary classifier that can automatically
 identify potential comet candidates in the ZTF alert stream.
-<br/>
+
 
 ## Installation
 ```bash
   pip install -r requirements.txt
 ```
-<br/>
 
 ## Usage
 
@@ -35,7 +34,6 @@ identify potential comet candidates in the ZTF alert stream.
 ```bash
   python src/main.py submit_job --job_file=scripts/<your_script>.py
 ```
-<br/>
 
 ## Comet Alert Matching Application
 
