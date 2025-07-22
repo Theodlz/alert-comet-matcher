@@ -42,14 +42,12 @@ class Cluster:
         exit(1)
 
     def run_cmd(self, cmd):
-        self.check_ray()
         stdout, stderr = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
         ).communicate()
         return stdout.decode("utf-8"), stderr.decode("utf-8")
 
     def run_cmd_reel_time_output(self, cmd):
-        self.check_ray()
         process = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True
         )
@@ -70,17 +68,20 @@ class Cluster:
 
     def stop(self, force=False):
         print("Stopping Ray Cluster")
+        self.check_ray()
         std_out, std_err = self.run_cmd(f"ray stop {'--force' if force else ''}")
         print(std_out)
         print(std_err)
 
     def status(self):
         print("Ray Cluster's status")
+        self.check_ray()
         std_out, std_err = self.run_cmd(f"ray status --address={address}")
         print(std_out)
         print(std_err)
 
     def submit_job(self, job_file, nowait=False):
+        self.check_ray()
         # Exclude files from being sent to the cluster
         runtime_env = {"excludes": get_files_to_exclude(cfg["ray"]["files_to_include"])}
         exclude_config = f"--runtime-env-json='{json.dumps(runtime_env)}'"
@@ -95,6 +96,7 @@ class Cluster:
         print(std_err)
 
     def cancel_job(self, job_id):
+        self.check_ray()
         print("Cancelling job")
         std_out, std_err = self.run_cmd(f"ray job stop --address={address} {job_id}")
         print(std_out)
