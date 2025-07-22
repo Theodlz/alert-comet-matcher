@@ -85,7 +85,7 @@ def build_cone_search(
 
 
 def run_queries(
-    k: Kowalski,
+    kowalski: Kowalski,
     queries: list[dict],
     query_type: str,
     n_processes: int,
@@ -95,18 +95,17 @@ def run_queries(
     """Run queries in Kowalski and return results without duplicates
 
     Args:
-        k (Kowalski): Kowalski client
+        kowalski (Kowalski): Kowalski client
         queries (list[dict]): list of queries
         query_type (str): query type. One of 'cone_search', 'near', 'aggregate'
         n_processes (int, optional): number of processes.
         stream (str): alert stream name
         seen_ids_by_comet (dict[str, set()]): dict with comet name as key and set of seen ids as value
 
-
     Returns:
         query_results (dict): query results
     """
-    responses = k.query(
+    responses = kowalski.query(
         queries=queries, use_batch_query=True, max_n_threads=n_processes
     )
     if query_type != "cone_search":
@@ -115,14 +114,16 @@ def run_queries(
     results = defaultdict(list)
     for query_result_list in responses.values():
         for query_result in query_result_list:
-            for obj, obj_data in query_result["data"][stream].items():
+            for comet, alerts in query_result["data"][stream].items():
+                # Filter alerts to only keep those not already seen
                 new_items = [
-                    item
-                    for item in obj_data
-                    if item["candid"] not in seen_ids_by_comet.get(obj, set())
+                    alert
+                    for alert in alerts
+                    if alert["candid"] not in seen_ids_by_comet.get(comet, set())
                 ]
-                seen_ids_by_comet.setdefault(obj, set()).update(
+                # Update seen ids
+                seen_ids_by_comet.setdefault(comet, set()).update(
                     alert["candid"] for alert in new_items
                 )
-                results[obj].extend(new_items)
+                results[comet].extend(new_items)
     return results

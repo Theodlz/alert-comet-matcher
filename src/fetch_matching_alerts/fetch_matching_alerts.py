@@ -1,78 +1,81 @@
 import json
 import os
-from collections import defaultdict
-from tqdm import tqdm
 
-from src.utils.kowalski import build_cone_search, run_queries, Kowalski
-from src.utils.paths import comet_alerts_file
+from tqdm import tqdm
+from collections import defaultdict
+
 from src.config import load_config
+from src.fetch_matching_alerts.load_fetched_comets import (
+    load_fetched_comets,
+    is_epoch_processed,
+)
+from src.utils.kowalski import build_cone_search, run_queries
+from src.utils.paths import comet_alerts_file
 
 cfg = load_config()
 
 
-def is_epoch_processed(epoch, processed_epochs):
-    return processed_epochs["start"] <= epoch <= processed_epochs["end"]
-
-
-def bulk_query_moving_objects(
-    k: Kowalski,
-    objects_with_positions: dict,
+def fetch_comet_matching_alerts(
+    kowalski,
     n_processes,
     max_queries_per_batch,
     verbose,
 ):
-    stream = cfg["kowalski"]["alert_stream"]
-    if len(objects_with_positions) == 0:
-        return {}
+    # Load comet positions already fetched
+    comets_with_positions = load_fetched_comets(verbose)
+    if not comets_with_positions:
+        return
 
-    # verify that all the objects have the same epochs
-    # if not, raise an exception
-    if len(objects_with_positions) > 1:
+    # verify that all the objects have the same epochs, if not raise an exception
+    if len(comets_with_positions) > 1:
         epochs = set()
-        for obj_name in objects_with_positions:
-            epochs.add(tuple(objects_with_positions[obj_name]["jd"]))
+        for comet_name in comets_with_positions:
+            epochs.add(tuple(comets_with_positions[comet_name]["jd"]))
         if len(epochs) > 1:
             raise Exception("Objects have different epochs")
 
     print("Generating queries...")
 
-    obj_processed_epochs = {}
+    # Store already processed epochs and seen ids
+    comet_processed_epochs = {}
     seen_ids_by_comet = defaultdict(set)
-    for obj_name in objects_with_positions:
-        if os.path.exists(comet_alerts_file(obj_name)):
-            with open(comet_alerts_file(obj_name), "r", encoding="utf-8") as f:
+    for comet_name in comets_with_positions:
+        if os.path.exists(comet_alerts_file(comet_name)):
+            with open(comet_alerts_file(comet_name), "r", encoding="utf-8") as f:
                 data = json.load(f)
-            obj_processed_epochs[obj_name] = data["processed_epochs"]
+            comet_processed_epochs[comet_name] = data["processed_epochs"]
             if data["results"]:
-                seen_ids_by_comet[obj_name].update(
+                seen_ids_by_comet[comet_name].update(
                     alert["candid"] for alert in data["results"]
                 )
         else:
-            obj_processed_epochs[obj_name] = set()
+            comet_processed_epochs[comet_name] = set()
 
-    # reformat to have a dict with keys as epochs and values as lists of objects and their positions at that epoch
-    epochs = tuple(objects_with_positions[list(objects_with_positions.keys())[0]]["jd"])
+    # reformat to have a dict with keys as epochs and values as lists of comets and their positions at that epoch
+    epochs = tuple(comets_with_positions[list(comets_with_positions.keys())[0]]["jd"])
     max_queries_per_batch = (
         min(max_queries_per_batch, len(epochs))
         if max_queries_per_batch
         else len(epochs)
     )
+    stream = cfg["kowalski"]["alert_stream"]
     with tqdm(total=len(epochs), disable=not verbose) as pbar:
         # process batch of max_queries_per_batch epochs at a time until all epochs are processed
         for i in range(0, len(epochs), max_queries_per_batch):
             queries = []
             batch_epochs = epochs[i : i + max_queries_per_batch]
             for j, epoch in enumerate(batch_epochs):
-                objects = {}
-                for obj_name in objects_with_positions:
-                    if not obj_processed_epochs[obj_name] or not is_epoch_processed(
-                        epoch, obj_processed_epochs[obj_name]
-                    ):
-                        objects[obj_name] = [
-                            objects_with_positions[obj_name]["ra"][i + j],
-                            objects_with_positions[obj_name]["dec"][i + j],
-                        ]
-                if len(objects) == 0:
+                comets_to_process = {
+                    comet_name: [
+                        comets_with_positions[comet_name]["ra"][i + j],
+                        comets_with_positions[comet_name]["dec"][i + j],
+                    ]
+                    for comet_name in comets_with_positions
+                    if not comet_processed_epochs[comet_name]
+                    or not is_epoch_processed(epoch, comet_processed_epochs[comet_name])
+                }
+
+                if not comets_to_process:
                     continue
 
                 catalog_parameters = {
@@ -94,13 +97,13 @@ def bulk_query_moving_objects(
 
                 queries.append(
                     build_cone_search(
-                        objects, catalog_parameters, radius=5.0, unit="arcsec"
+                        comets_to_process, catalog_parameters, radius=5.0, unit="arcsec"
                     )
                 )
 
             # Retrieve data from Kowalski deduplicated by seen candids
             results = run_queries(
-                k,
+                kowalski,
                 queries=queries,
                 query_type="cone_search",
                 n_processes=n_processes,
@@ -109,8 +112,8 @@ def bulk_query_moving_objects(
             )
 
             # save alerts to comet alerts files
-            for obj_name, alerts in results.items():
-                if not os.path.exists(comet_alerts_file(obj_name)):
+            for comet_name, alerts in results.items():
+                if not os.path.exists(comet_alerts_file(comet_name)):
                     data = {
                         "processed_epochs": {
                             "start": batch_epochs[0],
@@ -119,7 +122,9 @@ def bulk_query_moving_objects(
                         "results": alerts,
                     }
                 else:
-                    with open(comet_alerts_file(obj_name), "r", encoding="utf-8") as f:
+                    with open(
+                        comet_alerts_file(comet_name), "r", encoding="utf-8"
+                    ) as f:
                         data = json.load(f)
                     data["processed_epochs"]["start"] = min(
                         data["processed_epochs"]["start"], batch_epochs[0]
@@ -131,9 +136,7 @@ def bulk_query_moving_objects(
                     if alerts:
                         data["results"].extend(alerts)
 
-                with open(comet_alerts_file(obj_name), "w", encoding="utf-8") as f:
+                with open(comet_alerts_file(comet_name), "w", encoding="utf-8") as f:
                     json.dump(data, f, indent=2)
 
             pbar.update(len(batch_epochs))
-
-    return
