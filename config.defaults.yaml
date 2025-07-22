@@ -19,9 +19,9 @@ kowalski:
   host: kowalski.caltech.edu
   port: 443
   token: <your_token_here>
+  alert_stream: ZTF_alerts
 
 params:
   max_queries_per_batch: 10000
   comet_list_url: https://planets.ucf.edu/resources/cometlist/
-  alert_stream: ZTF_alerts
-  data_path: <path_where_to_store_retrieved_data> # example: /Users/.../projects/alert-tools/data
+  data_path: <path_where_to_store_retrieved_data> # example: /Users/.../projects/alert-comet-matcher/data

@@ -20,7 +20,7 @@ def bulk_query_moving_objects(
     max_queries_per_batch,
     verbose,
 ):
-    stream = cfg["params"]["alert_stream"]
+    stream = cfg["kowalski"]["alert_stream"]
     if len(objects_with_positions) == 0:
         return {}
 
