@@ -1,40 +1,53 @@
-This is a work in progress!
+## What is it about? (work in progress)
+This is a fairly simple system, which aims to process alert data from multiple surveys in a generic manner,
+submitting computation to a [Ray cluster](https://www.ray.io/). The idea is to provide a simple interface
+to start a ray cluster, and submit any task to it. In the future, using ray's distributed features,
+we can imagine spawning multiple clusters across multiple machines to scale up the computation power super easily.
 
-## What is it about?
-This is a fairly simple system, which aims to process alert data from multiple surveys in a generic manner, submitting computation to a [Ray cluster](https://www.ray.io/).
+### Application: Comet Alert Matching
+The initial use case is focused on matching alerts from ZTF with known comet orbits.
+We use [Astroquery](https://astroquery.readthedocs.io/en/latest/) to calculate comet positions (from 2017 to 2026)
+based on data from this [comet list](https://planets.ucf.edu/resources/cometlist/),
+and then use [penquins](https://github.com/dmitryduev/penquins) to query Kowalski
+for ZTF alerts via cone searches.
 
-The idea is that this system allows to easily start a ray cluster, and submit any task to it. In the future, using ray's distributed features, we can imagine spawning multiple clusters across multiple machines to scale up the computation power super easily.
+- Note: The search radius and time tolerance are intentionally generous to compensate for the fixed 10-minute
+ sampling interval of comet positions. These parameters can be easily adjusted.
 
-All the credentials and configuration are stored in a config file, which is not included in this repo, but which you can easily create by copying the `config.defaults.yaml` file and filling in the blanks.
+Ultimately, the goal is to train a binary classifier that can automatically
+identify potential comet candidates in the ZTF alert stream.
 
-The very first application for this system, and which serves as the basic example aims to find the ZTF alerts counterparts for a list of comets from https://physics.ucf.edu/~yfernandez/cometlist.html. To do so, we use JPL's astroquery to retrieve the positions of said comets for a period of 6 years (from late 2017 to November 2023), and then we use penquins to query Kowalski using cone searches, with somewhat loose queries (in radius and time) to try to compensate for the fixed 10m rate at which we sampled the comets' positions. These querying conditions could be easily modified to be more or less strict.
-
-Ultimately, we'd like to train a binary classifier to try to automagically find potential comet's in the ZTF alerts stream.
 
 ## Installation
 ```bash
-pip install -r requirements.txt
+  pip install -r requirements.txt
 ```
 
 ## Usage
 
-### Start a ray cluster
+#### Start a ray cluster
 ```bash
-python main.py start
+  python src/main.py start
 ```
 
-### Submit a job to the cluster
+#### Submit a job to the cluster
 ```bash
-python main.py submit_job --job_file=scripts/<your_script>.py
+  python src/main.py submit_job --job_file=src/scripts/<your_script>.py
 ```
 
-Example:
-First we submit a long running job (without waiting for it to finish) to generate the comets positions for a period of 6 years:
+## Comet Alert Matching Application
+
+#### Generate comet positions and store them as Parquet files:
 ```bash
-python main.py submit_job --job_file=scripts/generate_comets_positions.py --nowait
+  python src/main.py submit_job --job_file=src/scripts/generate_comets_positions.py --nowait
+```
+> This script retrieves comet positions over the past 9 years.
+> Stop it early if you are testing.
+
+#### Fetch ZTF alerts corresponding to those positions and store them as JSON files:
+```bash
+  python src/main.py submit_job --job_file=src/scripts/fetch_comet_alerts.py
 ```
 
-Then, at anytime after that, we submit a job that tries to fetch the ZTF alerts for those comets from Kowalski:
-```bash
-python main.py submit_job --job_file=scripts/fetch_comet_alerts.py
-```
+You can check the status of the jobs by going to the Ray dashboard
+at the URL printed in the terminal when you start the Ray cluster.
