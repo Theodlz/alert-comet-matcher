@@ -1,5 +1,6 @@
 import json
 import os
+from collections import defaultdict
 from tqdm import tqdm
 
 from src.utils.kowalski import build_cone_search, run_queries, Kowalski
@@ -36,14 +37,16 @@ def bulk_query_moving_objects(
     print("Generating queries...")
 
     obj_processed_epochs = {}
-    seen_ids = set()
+    seen_ids_by_comet = defaultdict(set)
     for obj_name in objects_with_positions:
         if os.path.exists(comet_alerts_file(obj_name)):
             with open(comet_alerts_file(obj_name), "r", encoding="utf-8") as f:
                 data = json.load(f)
             obj_processed_epochs[obj_name] = data["processed_epochs"]
             if data["results"]:
-                seen_ids.update(alert["candid"] for alert in data["results"])
+                seen_ids_by_comet[obj_name].update(
+                    alert["candid"] for alert in data["results"]
+                )
         else:
             obj_processed_epochs[obj_name] = set()
 
@@ -102,7 +105,7 @@ def bulk_query_moving_objects(
                 query_type="cone_search",
                 n_processes=n_processes,
                 stream=stream,
-                seen_ids=seen_ids,
+                seen_ids_by_comet=seen_ids_by_comet,
             )
 
             # save alerts to comet alerts files

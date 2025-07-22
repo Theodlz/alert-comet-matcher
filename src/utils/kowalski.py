@@ -90,9 +90,9 @@ def run_queries(
     query_type: str,
     n_processes: int,
     stream: str,
-    seen_ids: set,
+    seen_ids_by_comet: dict[str, set[str]],
 ):
-    """Run query in Kowalski and return results without duplicates
+    """Run queries in Kowalski and return results without duplicates
 
     Args:
         k (Kowalski): Kowalski client
@@ -100,7 +100,8 @@ def run_queries(
         query_type (str): query type. One of 'cone_search', 'near', 'aggregate'
         n_processes (int, optional): number of processes.
         stream (str): alert stream name
-        seen_ids (set): set of seen ids to avoid duplicates
+        seen_ids_by_comet (dict[str, set()]): dict with comet name as key and set of seen ids as value
+
 
     Returns:
         query_results (dict): query results
@@ -116,8 +117,12 @@ def run_queries(
         for query_result in query_result_list:
             for obj, obj_data in query_result["data"][stream].items():
                 new_items = [
-                    item for item in obj_data if item["candid"] not in seen_ids
+                    item
+                    for item in obj_data
+                    if item["candid"] not in seen_ids_by_comet.get(obj, set())
                 ]
-                seen_ids.update(item["candid"] for item in new_items)
+                seen_ids_by_comet.setdefault(obj, set()).update(
+                    alert["candid"] for alert in new_items
+                )
                 results[obj].extend(new_items)
     return results
