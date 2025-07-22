@@ -26,13 +26,30 @@ def get_files_to_exclude(exceptions):
 
 
 class Cluster:
+    @staticmethod
+    def check_ray():
+        cmd = f"ray status --address={address}"
+        process = subprocess.Popen(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
+        )
+        try:
+            process.communicate(timeout=5)
+            if process.returncode == 0:
+                return
+        except subprocess.TimeoutExpired:
+            process.kill()
+        print("Error: Ray is not running. Please start the Ray cluster first.")
+        exit(1)
+
     def run_cmd(self, cmd):
+        self.check_ray()
         stdout, stderr = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
         ).communicate()
         return stdout.decode("utf-8"), stderr.decode("utf-8")
 
     def run_cmd_reel_time_output(self, cmd):
+        self.check_ray()
         process = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True
         )
