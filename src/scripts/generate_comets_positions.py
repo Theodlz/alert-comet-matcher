@@ -39,6 +39,6 @@ def fetch_comets_data(start_date, end_date, verbose=True):
 ray.init()
 cfg = load_config()
 fetch_comets_data(
-    start_date="2017-11-07",
-    end_date="2026-01-01",
+    start_date="2017-11-07",  # Date to start fetching comet data from (YYYY-MM-DD)
+    end_date="2026-11-07",  # Date to stop fetching comet data from (YYYY-MM-DD)
 )
