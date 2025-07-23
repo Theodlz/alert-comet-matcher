@@ -6,8 +6,7 @@ from src.utils.validate import (
     ObjectsWithPosition,
     KowalskiCredentials,
 )
-from src.utils.moving_objects import get_object_positions
-from src.utils.comets import get_comets_list
+from src.utils.comets import get_comet_positions, fetch_comets
 from src.utils.kowalski import build_cone_search
 
 
@@ -83,7 +82,7 @@ def test_validate_moving_object():
 
 def test_get_objects_positions():
     try:
-        positions = get_object_positions(
+        positions = get_comet_positions(
             "C/2020 F3", "2023-07-30", "2023-07-31", "10m", verbose=False
         )
     except Exception as e:
@@ -105,9 +104,9 @@ def test_get_objects_positions():
 
 def test_get_comets_list():
     try:
-        comets = get_comets_list()
+        comets = fetch_comets()
     except Exception as e:
-        pytest.fail(f"Exception raised: {str(e)}")
+        assert False, f"Exception raised: {str(e)}"
 
     assert isinstance(comets, list)
     assert len(comets) > 0

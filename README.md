@@ -32,21 +32,21 @@ identify potential comet candidates in the ZTF alert stream.
 
 #### Submit a job to the cluster
 ```bash
-  python src/main.py submit_job --job_file=src/scripts/<your_script>.py
+  python src/main.py submit_job --job_file=src/<your_script>.py
 ```
 
 ## Comet Alert Matching Application
 
 #### Generate comet positions and store them as Parquet files:
 ```bash
-  python src/main.py submit_job --job_file=src/scripts/generate_comets_positions.py --nowait
+  python src/main.py submit_job --job_file=src/generate_comet_positions/generate_comet_positions_ray.py --nowait
 ```
 > This script retrieves comet positions over the past 9 years.
 > Stop it early if you are testing.
 
 #### Fetch ZTF alerts corresponding to those positions and store them as JSON files:
 ```bash
-  python src/main.py submit_job --job_file=src/scripts/fetch_comet_alerts.py
+  python src/main.py submit_job --job_file=src/fetch_matching_alerts/fetch_matching_alerts_ray.py
 ```
 
 You can check the status of the jobs by going to the Ray dashboard

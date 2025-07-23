@@ -1,7 +1,6 @@
 import ray
-from src.utils.moving_objects import get_object_positions
+from src.utils.comets import get_comet_positions
 
-# connect to the Ray cluster
 ray.init()
 
 
@@ -11,13 +10,13 @@ def f():
 
 
 @ray.remote
-def ray_get_object_positions(obj_name, start_date, end_date, time_step, verbose):
-    return get_object_positions(
-        obj_name=obj_name,
-        start_date=start_date,
-        end_date=end_date,
-        time_step=time_step,
-        verbose=verbose,
+def ray_get_comet_positions(comet_name, start_date, end_date, time_step, verbose):
+    return get_comet_positions(
+        comet_name,
+        start_date,
+        end_date,
+        time_step,
+        verbose,
     )
 
 
@@ -26,19 +25,19 @@ def test_ray():
     assert ray.get(result) == 1
 
 
-def test_get_objects_positions():
-    obj_name = "C/2020 F3"
+def test_get_comet_positions():
+    comet_name = "C/2020 F3"
     start_date = "2020-01-01"
     end_date = "2020-01-02"
     time_step = "10m"
     verbose = False
     try:
-        result = ray_get_object_positions.remote(
-            obj_name=obj_name,
-            start_date=start_date,
-            end_date=end_date,
-            time_step=time_step,
-            verbose=verbose,
+        result = ray_get_comet_positions.remote(
+            comet_name,
+            start_date,
+            end_date,
+            time_step,
+            verbose,
         )
         result = ray.get(result)
     except Exception as e:

@@ -3,7 +3,7 @@ import os
 from src.config import load_config
 
 cfg = load_config()
-data_path = cfg["params"]["data_path"]
+data_path = cfg["params.data_path"]
 
 
 def join_paths(*paths):
@@ -23,4 +23,4 @@ def comet_positions_folder():
 
 
 def comet_positions_file(file_name):
-    return join_paths("comet_positions", file_name)
+    return join_paths("comet_positions", f"{file_name}.parquet")
