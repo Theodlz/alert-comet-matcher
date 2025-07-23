@@ -44,6 +44,6 @@ def generate_all_comet_positions(start_date, end_date, verbose=True, n_workers=2
 ray.init()
 cfg = load_config()
 generate_all_comet_positions(
-    start_date="2017-11-07",  # Date to start fetching comet data from (YYYY-MM-DD)
-    end_date="2026-11-07",  # Date to stop fetching comet data from (YYYY-MM-DD)
+    start_date="2017-11-07",  # Date to start generating comet positions from (YYYY-MM-DD)
+    end_date="2026-11-07",  # Date to stop generating comet positions (YYYY-MM-DD)
 )

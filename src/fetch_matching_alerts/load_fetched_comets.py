@@ -24,6 +24,10 @@ def load_fetched_comets(verbose):
 
     parquet_files = list(Path(comet_positions_folder()).glob("*.parquet"))
 
+    if not parquet_files:
+        print("No parquet files found, exiting")
+        return None
+
     # Extract comet name by removing the last three parts of the filename
     comets = {
         "_".join(os.path.basename(file).split("_")[:-3]): file for file in parquet_files
