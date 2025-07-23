@@ -48,5 +48,6 @@ try:
         start_date="2017-11-07",  # Date to start generating comet positions from (YYYY-MM-DD)
         end_date="2026-11-07",  # Date to stop generating comet positions (YYYY-MM-DD)
     )
+    print("All comet positions generated successfully.")
 finally:
     ray.shutdown()

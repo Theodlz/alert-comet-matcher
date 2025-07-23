@@ -19,7 +19,7 @@ def fetch_comets():
     r = requests.get(cfg["params.comet_list_url"])
     soup = BeautifulSoup(r.text, "html.parser")
 
-    comet_pattern = re.compile(r"[A-Z]/\d+ [A-Z]+\d*")
+    comet_pattern = re.compile(r"[A-Z]/\d{4} [A-Z]{1,3}\d{0,3}(?:-[A-Z])?")
     comets = []
 
     for pre in soup.find_all("pre"):
@@ -72,9 +72,9 @@ def get_comet_positions(
             dec.extend(pos.dec.value.tolist())
             jd.extend(times.jd.tolist())
         except Exception as e:
-            print(f"Error fetching data for {start.date()} to {end.date()}: {e}")
-            ra.append(0)
-            dec.append(0)
-            jd.append(0)
+            print(
+                f"Error fetching data for {comet_name} between {start.date()} and {end.date()}: {e}"
+            )
+            return None
 
     return {"ra": ra, "dec": dec, "jd": jd}

@@ -18,7 +18,6 @@ cfg = load_config()
 def fetch_comet_matching_alerts(
     kowalski,
     n_processes,
-    max_queries_per_batch,
     verbose,
 ):
     # Load comet positions already fetched
@@ -29,8 +28,8 @@ def fetch_comet_matching_alerts(
     # verify that all the objects have the same epochs, if not raise an exception
     if len(comets_with_positions) > 1:
         epochs = set()
-        for comet_name in comets_with_positions:
-            epochs.add(tuple(comets_with_positions[comet_name]["jd"]))
+        for comet_name, positions in comets_with_positions.items():
+            epochs.add(tuple(positions["jd"]))
         if len(epochs) > 1:
             raise Exception("Objects have different epochs")
 
@@ -53,10 +52,8 @@ def fetch_comet_matching_alerts(
 
     # reformat to have a dict with keys as epochs and values as lists of comets and their positions at that epoch
     epochs = tuple(comets_with_positions[list(comets_with_positions.keys())[0]]["jd"])
-    max_queries_per_batch = (
-        min(max_queries_per_batch, len(epochs))
-        if max_queries_per_batch
-        else len(epochs)
+    max_queries_per_batch = min(
+        cfg.get("params.max_queries_per_batch", len(epochs)), len(epochs)
     )
     stream = cfg["kowalski.alert_stream"]
     with tqdm(total=len(epochs), disable=not verbose) as pbar:

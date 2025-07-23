@@ -39,7 +39,7 @@ def load_fetched_comets(verbose):
     epochs = pd.read_parquet(next(iter(comets.values())))["jd"]
     first_epoch, last_epoch = epochs.min(), epochs.max()
 
-    # Filter out comets that have already been fully processed
+    # Filter out comets that have already been fully processed or with no data
     comets_to_process = {}
     for comet_name, file_path in comets.items():
         if os.path.exists(comet_alerts_file(comet_name)):

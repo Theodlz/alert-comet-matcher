@@ -24,6 +24,9 @@ def generate_comet_positions(comet_name: str, start_date, end_date, time_step, v
     positions = get_comet_positions(
         comet_name, start_date, end_date, time_step, verbose=verbose
     )
+    if not positions:
+        print(f"No data for {comet_name}, skipping")
+        return
 
     # Put the data into a DataFrame and save it as a parquet file
     pd.DataFrame(positions).to_parquet(
