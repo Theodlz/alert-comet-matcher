@@ -34,9 +34,13 @@ def fetch_comet_matching_alerts_remote(
 
 
 ray.init()
-cfg = load_config()
-ray.get(
-    fetch_comet_matching_alerts_remote.remote(
-        cfg["params.max_queries_per_batch"], loop=True
+try:
+    cfg = load_config()
+    ray.get(
+        fetch_comet_matching_alerts_remote.remote(
+            cfg["params.max_queries_per_batch"],
+            loop=True,
+        )
     )
-)
+finally:
+    ray.shutdown()
