@@ -16,7 +16,7 @@ cfg = load_config()
 
 
 def fetch_comets():
-    r = requests.get(cfg["params"]["comet_list_url"])
+    r = requests.get(cfg["params.comet_list_url"])
     soup = BeautifulSoup(r.text, "html.parser")
 
     comet_pattern = re.compile(r"[A-Z]/\d+ [A-Z]+\d*")

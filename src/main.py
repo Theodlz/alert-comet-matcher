@@ -7,10 +7,10 @@ from config import load_config
 
 cfg = load_config()
 
-ray_host = cfg["ray"]["cluster"]["host"]
-ray_port = cfg["ray"]["cluster"]["port"]
-ray_dashboard_host = cfg["ray"]["dashboard"]["host"]
-ray_dashboard_port = cfg["ray"]["dashboard"]["port"]
+ray_host = cfg["ray.cluster.host"]
+ray_port = cfg["ray.cluster.port"]
+ray_dashboard_host = cfg["ray.dashboard.host"]
+ray_dashboard_port = cfg["ray.dashboard.port"]
 address = f"{ray_host}:{ray_port}"
 
 
@@ -41,13 +41,15 @@ class Cluster:
         print("Error: Ray is not running. Please start the Ray cluster first.")
         exit(1)
 
-    def run_cmd(self, cmd):
+    @staticmethod
+    def run_cmd(cmd):
         stdout, stderr = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True
         ).communicate()
         return stdout.decode("utf-8"), stderr.decode("utf-8")
 
-    def run_cmd_reel_time_output(self, cmd):
+    @staticmethod
+    def run_cmd_reel_time_output(cmd):
         process = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True, text=True
         )
@@ -83,7 +85,7 @@ class Cluster:
     def submit_job(self, job_file, nowait=False):
         self.check_ray()
         # Exclude files from being sent to the cluster
-        runtime_env = {"excludes": get_files_to_exclude(cfg["ray"]["files_to_include"])}
+        runtime_env = {"excludes": get_files_to_exclude(cfg["ray.files_to_include"])}
         exclude_config = f"--runtime-env-json='{json.dumps(runtime_env)}'"
         # Determine if the job should be submitted with --no-wait
         nowait = "--no-wait" if nowait else ""

@@ -32,7 +32,7 @@ def load_fetched_comets(verbose):
         os.makedirs(comet_alerts_folder(), exist_ok=True)
 
     # Get the epoch range from the first file (assuming all files have the same range)
-    epochs = pd.read_parquet(next(iter(comets.values())))["times"]
+    epochs = pd.read_parquet(next(iter(comets.values())))["jd"]
     first_epoch, last_epoch = epochs.min(), epochs.max()
 
     # Filter out comets that have already been fully processed
@@ -52,7 +52,7 @@ def load_fetched_comets(verbose):
 
     if not comets_to_process:
         print("No comets to process, exiting")
-        return
+        return None
 
     print(f"Found {len(comets_to_process)} comets to process")
 
@@ -65,7 +65,7 @@ def load_fetched_comets(verbose):
         comets_with_positions[comet_name] = {
             "ra": data["ra"].values,
             "dec": data["dec"].values,
-            "jd": data["jd"].values if "jd" in data.columns else data["times"].values,
+            "jd": data["jd"].values,
         }
 
     return comets_with_positions

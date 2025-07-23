@@ -58,7 +58,7 @@ def fetch_comet_matching_alerts(
         if max_queries_per_batch
         else len(epochs)
     )
-    stream = cfg["kowalski"]["alert_stream"]
+    stream = cfg["kowalski.alert_stream"]
     with tqdm(total=len(epochs), disable=not verbose) as pbar:
         # process batch of max_queries_per_batch epochs at a time until all epochs are processed
         for i in range(0, len(epochs), max_queries_per_batch):

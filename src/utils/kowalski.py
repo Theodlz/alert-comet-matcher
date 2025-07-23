@@ -1,6 +1,5 @@
 from collections import defaultdict
 from penquins import Kowalski
-import os
 
 from src.config import load_config
 from src.utils.validate import KowalskiCredentials
@@ -10,10 +9,10 @@ cfg = load_config()
 
 def get_credentials():
     return KowalskiCredentials(
-        protocol=cfg.get("kowalski.protocol", os.getenv("KOWALSKI_PROTOCOL")),
-        host=cfg.get("kowalski.host", os.getenv("KOWALSKI_HOST")),
-        port=int(cfg.get("kowalski.port", os.getenv("KOWALSKI_PORT"))),
-        token=cfg.get("kowalski.token", os.getenv("KOWALSKI_TOKEN")),
+        protocol=cfg["kowalski.protocol"],
+        host=cfg["kowalski.host"],
+        port=int(cfg["kowalski.port"]),
+        token=cfg["kowalski.token"],
     )
 
 
@@ -25,7 +24,7 @@ def connect_kowalski(
     Args:
         credentials (KowalskiCredentials): Kowalski credentials
         verbose (bool, optional): verbose. Defaults to False.
-        timeout (int, optional): timeout. Defaults to 6000.
+        timeout (int, optional): timeout. Default to 6000.
 
     Returns:
         Kowalski: Kowalski client

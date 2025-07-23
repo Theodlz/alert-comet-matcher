@@ -3,7 +3,7 @@ import os
 from src.config import load_config
 
 cfg = load_config()
-data_path = cfg["params"]["data_path"]
+data_path = cfg["params.data_path"]
 
 
 def join_paths(*paths):
