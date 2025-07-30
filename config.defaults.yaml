@@ -9,7 +9,6 @@ ray:
   cluster:
     host: localhost
     port: 4000
-    num_cpus: 6
   dashboard:
     host: localhost
     port: 8265
