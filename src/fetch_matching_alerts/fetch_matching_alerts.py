@@ -17,7 +17,6 @@ cfg = load_config()
 
 def fetch_comet_matching_alerts(
     kowalski,
-    n_processes,
     verbose,
 ):
     # Load comet positions already fetched
@@ -103,7 +102,7 @@ def fetch_comet_matching_alerts(
                 kowalski,
                 queries=queries,
                 query_type="cone_search",
-                n_processes=n_processes,
+                n_processes=cfg["kowalski.number_of_processes"],
                 stream=stream,
                 seen_ids_by_comet=seen_ids_by_comet,
             )

@@ -19,6 +19,7 @@ kowalski:
   port: 443
   token: <your_token_here>
   alert_stream: ZTF_alerts
+  number_of_processes: 12
 
 params:
   max_queries_per_batch: 10000

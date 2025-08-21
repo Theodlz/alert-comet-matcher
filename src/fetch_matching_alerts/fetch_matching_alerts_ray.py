@@ -7,7 +7,6 @@ from src.fetch_matching_alerts.fetch_matching_alerts import fetch_comet_matching
 
 @ray.remote
 def fetch_comet_matching_alerts_remote(
-    n_processes=12,
     verbose=True,
     loop=False,
 ):
@@ -17,14 +16,12 @@ def fetch_comet_matching_alerts_remote(
         while True:
             fetch_comet_matching_alerts(
                 kowalski,
-                n_processes,
                 verbose,
             )
             time.sleep(60)
     else:
         fetch_comet_matching_alerts(
             kowalski,
-            n_processes,
             verbose,
         )
 
