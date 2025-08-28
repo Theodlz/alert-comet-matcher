@@ -9,7 +9,6 @@ ray:
   cluster:
     host: localhost
     port: 4000
-    num_cpus: 6
   dashboard:
     host: localhost
     port: 8265
@@ -20,6 +19,7 @@ kowalski:
   port: 443
   token: <your_token_here>
   alert_stream: ZTF_alerts
+  number_of_processes: 12
 
 params:
   max_queries_per_batch: 10000

@@ -105,7 +105,7 @@ def run_queries(
         query_results (dict): query results
     """
     responses = kowalski.query(
-        queries=queries, use_batch_query=True, max_n_threads=n_processes
+        queries=queries, use_batch_query=True, max_n_threads=n_processes or 4
     )
     if query_type != "cone_search":
         raise NotImplementedError(f"query_type {query_type} not implemented yet!")
